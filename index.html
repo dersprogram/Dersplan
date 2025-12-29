@@ -49,7 +49,7 @@
         .nav-item.active { background: var(--primary); color: white; }
         .nav-icon { width: 16px; height: 16px; stroke-width: 2.5; }
 
-        main { padding: 8px; width: 100%; max-width: 550px; margin: 0 auto; }
+        main { padding: 8px; width: 100%; max-width: 550px; margin: 0 auto; min-height: 60vh; }
         .hidden { display: none !important; }
 
         .day-bar { 
@@ -110,12 +110,16 @@
         .fade { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* AYARLAR ÖZEL DARALTMA */
+        /* AYARLAR ÖZEL */
         .settings-card { padding: 8px 10px !important; margin-bottom: 4px !important; }
         .row-num { color: var(--primary); font-weight: 900; font-size: 13px; margin-right: 5px; min-width: 55px; }
+        
+        /* Seçilen günün kırmızı olması için stil */
+        #bulkDay { color: #dc2626; border: 1.5px solid #fca5a5; }
+        #bulkDay option { color: #020617; } /* Diğer seçenekler normal renk kalsın */
     </style>
 </head>
-<body>
+<body id="swipeArea">
     <div class="header-container">
         <header class="top-brand"><div class="logo">DERS<span>PLAN</span></div></header>
         <nav class="top-nav">
@@ -164,7 +168,7 @@
 
         <div class="card settings-card">
             <label>DÜZENLENECEK GÜN</label>
-            <select id="bulkDay" disabled onchange="renderBulkRows()" style="font-weight: 700;">
+            <select id="bulkDay" disabled onchange="renderBulkRows()" style="font-weight: 800;">
                 <option>Pazartesi</option><option>Salı</option><option>Çarşamba</option>
                 <option>Perşembe</option><option>Cuma</option><option>Cumartesi</option><option>Pazar</option>
             </select>
@@ -182,17 +186,19 @@
             "12": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "T.C. İNKILAP TARİHİ", "COĞRAFYA", "DİNLER TARİHİ", "KELAM", "MESLEKİ ARAPÇA", "İSLAM KÜLTÜR VE MEDENİYETİ", "KURAN-I KERİM", "REHBERLİK", "SEÇMELİ DERS"]
         };
         const classSubs = {
-            "09": ["A", "B", "C", "D", "E", "İ", "J"], "10": ["A", "B", "C", "D", "İ", "J"],
-            "11": ["A", "B", "İ", "J"], "12": ["A", "B", "C", "İ", "J"]
+            "09": ["A", "B", "C", "D", "E", "I", "J"], "10": ["A", "B", "C", "D", "I", "J"],
+            "11": ["A", "B", "I", "J"], "12": ["A", "B", "C", "I", "J"]
         };
-        const gunList = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
+        const gunList = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
         
         let db = JSON.parse(localStorage.getItem('dersPlan_v1')) || {
             schedule: [],
             config: { start: "08:15", duration: 40, break: 10, lunch: 45 }
         };
 
-        let currentActiveDay = gunList[new Date().getDay()] || "Pazartesi";
+        // Otomatik gün tespiti (Pazar günü için düzeltildi)
+        let dayIdx = new Date().getDay();
+        let currentActiveDay = gunList[dayIdx === 0 ? 6 : dayIdx - 1] || "Pazartesi";
         let isEditingUnlocked = false;
 
         function getTimes() {
@@ -234,6 +240,13 @@
             const list = document.getElementById('scheduleList');
             const dayData = db.schedule.filter(s => s.day === currentActiveDay).sort((a,b) => a.idx - b.idx);
             const times = getTimes();
+            
+            // Üstteki butonları güncelle
+            document.querySelectorAll('.day-tab').forEach(t => {
+                t.classList.toggle('active', t.innerText === currentActiveDay);
+                if(t.innerText === currentActiveDay) t.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            });
+
             if(dayData.length === 0) {
                 list.innerHTML = `<div class="card" style="text-align:center; padding:20px; color:var(--text-sub); font-size:15px;">Ders girişi yapılmamış</div>`;
                 return;
@@ -335,20 +348,48 @@
             handleLock(); setPage('home');
         }
 
+        // SWIPE (KAYDIRMA) ÖZELLİĞİ
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        function handleGesture() {
+            if (touchendX < touchstartX - 70) { // Sola kaydırma -> Sonraki gün
+                let idx = gunList.indexOf(currentActiveDay);
+                if (idx < gunList.length - 1) {
+                    currentActiveDay = gunList[idx + 1];
+                    renderHome();
+                }
+            }
+            if (touchendX > touchstartX + 70) { // Sağa kaydırma -> Önceki gün
+                let idx = gunList.indexOf(currentActiveDay);
+                if (idx > 0) {
+                    currentActiveDay = gunList[idx - 1];
+                    renderHome();
+                }
+            }
+        }
+
         window.onload = () => {
             const bar = document.getElementById('dayBar');
-            ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"].forEach(d => {
+            gunList.forEach(d => {
                 const btn = document.createElement('div');
                 btn.className = `day-tab ${d === currentActiveDay ? 'active' : ''}`;
                 btn.innerText = d;
                 btn.onclick = (e) => {
                     currentActiveDay = d;
-                    document.querySelectorAll('.day-tab').forEach(t => t.classList.toggle('active', t.innerText === d));
                     renderHome();
-                    e.target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                 };
                 bar.appendChild(btn);
             });
+
+            // Dokunmatik algılama
+            document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, false);
+            document.addEventListener('touchend', e => { 
+                touchendX = e.changedTouches[0].screenX; 
+                if(document.getElementById('pageHome').classList.contains('hidden')) return; // Sadece ana sayfada çalışsın
+                handleGesture(); 
+            }, false);
+
             document.getElementById('cfgStart').value = db.config.start;
             document.getElementById('cfgDur').value = db.config.duration;
             document.getElementById('cfgBreak').value = db.config.break;

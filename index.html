@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>DersPlan Pro</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -46,7 +45,6 @@
         main { padding: 8px; width: 100%; max-width: 500px; margin: 0 auto; }
         .hidden { display: none !important; }
 
-        /* KAYDIRILABİLİR GÜN ÇUBUĞU */
         .day-bar { 
             display: flex; gap: 6px; overflow-x: auto; padding: 5px 10px 10px 10px; 
             scrollbar-width: none; -webkit-overflow-scrolling: touch;
@@ -61,28 +59,24 @@
         }
         .day-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        .card {
-            background: white; border-radius: 12px; padding: 10px; margin-bottom: 6px;
-            border: 1px solid var(--border);
-        }
-
-        .lesson-row { display: flex; align-items: center; gap: 10px; }
+        .card { background: white; border-radius: 12px; padding: 10px; margin-bottom: 6px; border: 1px solid var(--border); }
+        .lesson-row { display: flex; align-items: center; gap: 8px; }
         .item-idx { color: var(--primary); width: 20px; font-size: 16px; font-weight: 900; }
-        .item-time { color: var(--text-sub); width: 90px; font-size: 13px; font-weight: 700; }
+        .item-time { color: var(--text-sub); width: 85px; font-size: 13px; font-weight: 700; }
         .item-class { 
             color: var(--primary); background: #eff6ff; 
-            padding: 3px 6px; border-radius: 6px; width: 55px; 
-            text-align: center; font-size: 12px; font-weight: 800; 
+            padding: 3px 5px; border-radius: 6px; min-width: 50px; 
+            text-align: center; font-size: 11px; font-weight: 800; 
         }
         .item-title { flex: 1; font-size: 15px; font-weight: 700; text-transform: uppercase; }
 
-        /* AYARLAR KOMPAKT GÖRÜNÜM */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        /* KÜÇÜLTÜLMÜŞ SEÇİM ALANLARI */
+        .grid-compact { display: grid; grid-template-columns: 70px 60px 1fr; gap: 6px; }
         input, select { 
-            height: 38px; font-size: 14px; border-radius: 8px; 
-            border: 1px solid var(--border); padding: 0 8px; width: 100%; font-weight: 600;
+            height: 34px; font-size: 13px; border-radius: 8px; 
+            border: 1px solid var(--border); padding: 0 6px; width: 100%; font-weight: 600;
         }
-        label { font-size: 10px; font-weight: 800; color: #64748b; margin-bottom: 4px; display: block; }
+        label { font-size: 10px; font-weight: 800; color: #64748b; margin-bottom: 3px; display: block; }
 
         .btn-action {
             width: 100%; padding: 12px; border-radius: 10px; border: none;
@@ -91,7 +85,7 @@
 
         .lock-box {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 10px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #fecaca; background: #fff5f5;
+            padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #fecaca; background: #fff5f5;
         }
     </style>
 </head>
@@ -111,21 +105,21 @@
 
     <main id="pageSettings" class="hidden">
         <div class="lock-box" id="lockBox">
-            <div style="font-size:12px; font-weight:800; color:#991b1b;">DÜZENLEME KİLİDİ</div>
-            <button onclick="handleLock()" id="lockToggle" style="padding:6px 10px; border-radius:6px; background:#f43f5e; color:white; border:none; font-weight:800; font-size:10px;">KİLİDİ AÇ</button>
+            <div style="font-size:11px; font-weight:800; color:#991b1b;">DÜZENLEME KİLİDİ</div>
+            <button onclick="handleLock()" id="lockToggle" style="padding:5px 10px; border-radius:6px; background:#f43f5e; color:white; border:none; font-weight:800; font-size:10px;">KİLİDİ AÇ</button>
         </div>
 
         <div class="card">
-            <div class="grid-2">
-                <div><label>Başlangıç</label><input type="time" id="cfgStart" disabled></div>
-                <div><label>Ders (dk)</label><input type="number" id="cfgDur" disabled></div>
-                <div><label>Teneffüs</label><input type="number" id="cfgBreak" disabled></div>
-                <div><label>Öğle Arası</label><input type="number" id="cfgLunch" disabled></div>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:5px;">
+                <div><label>Başla</label><input type="time" id="cfgStart" disabled></div>
+                <div><label>Ders</label><input type="number" id="cfgDur" disabled></div>
+                <div><label>Tenf.</label><input type="number" id="cfgBreak" disabled></div>
+                <div><label>Öğle</label><input type="number" id="cfgLunch" disabled></div>
             </div>
         </div>
 
         <div class="card">
-            <label>GÜN SEÇ</label>
+            <label>GÜN SEÇİN</label>
             <select id="bulkDay" disabled onchange="renderBulkRows()"></select>
         </div>
 
@@ -134,14 +128,8 @@
     </main>
 
     <script>
-        const lessons = {
-            "09": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "FİZİK", "KİMYA", "BİYOLOJİ", "TARİH", "COĞRAFYA", "ARAPÇA", "KURAN-I KERİM", "BEDEN EĞİTİMİ"],
-            "10": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "FİZİK", "KİMYA", "BİYOLOJİ", "TARİH", "COĞRAFYA", "FELSEFE", "HADİS", "FIKIH", "SİYER"],
-            "11": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "TARİH", "COĞRAFYA", "FELSEFE", "TEFSİR", "AKAİD", "HİTABET"],
-            "12": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "T.C. İNKILAP TARİHİ", "COĞRAFYA", "DİNLER TARİHİ", "KELAM"]
-        };
-        const classSubs = ["A", "B", "C", "D", "E", "I", "J"];
         const gunList = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+        const subeler = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
         
         let db = JSON.parse(localStorage.getItem('dersPlan_v1')) || {
             schedule: [],
@@ -186,10 +174,10 @@
             const times = getTimes();
             let html = "";
             if(dayData.length === 0) {
-                html = `<div class="card" style="text-align:center; padding:30px; color:#94a3b8;">Henüz ders eklenmemiş.</div>`;
+                html = `<div class="card" style="text-align:center; padding:30px; color:#94a3b8;">Ders girişi yok.</div>`;
             } else {
                 dayData.forEach(s => {
-                    html += `<div class="card" style="${s.isEmpty ? 'opacity:0.5' : ''}">
+                    html += `<div class="card" style="${s.isEmpty ? 'opacity:0.4' : ''}">
                         <div class="lesson-row">
                             <div class="item-idx">${s.idx}</div>
                             <div class="item-time">${times[s.idx-1]}</div>
@@ -208,22 +196,27 @@
             let html = "";
             for(let i=1; i<=8; i++) {
                 const s = db.schedule.find(x => x.day === day && x.idx === i) || {};
+                const currentLvl = s.class ? s.class.split('-')[0] : "";
+                const currentSub = s.class ? s.class.split('-')[1] : "";
+                
                 html += `<div class="card">
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                         <input type="checkbox" id="chk-${i}" ${s.isEmpty ? 'checked' : ''} onchange="toggleFormRow(${i})" ${!isEditingUnlocked ? 'disabled' : ''}>
                         <label for="chk-${i}" style="margin:0">Boş Ders</label>
                     </div>
-                    <div id="row-ui-${i}" style="${s.isEmpty ? 'opacity:0.3; pointer-events:none' : ''}">
-                        <div class="grid-2">
-                            <select id="lvl-${i}" ${!isEditingUnlocked ? 'disabled' : ''}>
-                                <option value="">Sınıf Seç</option>
-                                <option value="09" ${s.class?.startsWith('09')?'selected':''}>9</option>
-                                <option value="10" ${s.class?.startsWith('10')?'selected':''}>10</option>
-                                <option value="11" ${s.class?.startsWith('11')?'selected':''}>11</option>
-                                <option value="12" ${s.class?.startsWith('12')?'selected':''}>12</option>
-                            </select>
-                            <input id="les-${i}" placeholder="Ders Adı" value="${s.lesson || ''}" ${!isEditingUnlocked ? 'disabled' : ''}>
-                        </div>
+                    <div id="row-ui-${i}" class="grid-compact" style="${s.isEmpty ? 'opacity:0.3; pointer-events:none' : ''}">
+                        <select id="lvl-${i}" ${!isEditingUnlocked ? 'disabled' : ''}>
+                            <option value="">Sınıf</option>
+                            <option value="9" ${currentLvl=="9"?'selected':''}>9</option>
+                            <option value="10" ${currentLvl=="10"?'selected':''}>10</option>
+                            <option value="11" ${currentLvl=="11"?'selected':''}>11</option>
+                            <option value="12" ${currentLvl=="12"?'selected':''}>12</option>
+                        </select>
+                        <select id="sub-${i}" ${!isEditingUnlocked ? 'disabled' : ''}>
+                            <option value="">Şube</option>
+                            ${subeler.map(sb => `<option value="${sb}" ${currentSub==sb?'selected':''}>${sb}</option>`).join('')}
+                        </select>
+                        <input id="les-${i}" placeholder="Ders Adı" value="${s.lesson || ''}" ${!isEditingUnlocked ? 'disabled' : ''}>
                     </div>
                 </div>`;
             }
@@ -247,37 +240,6 @@
                 const empty = document.getElementById(`chk-${i}`).checked;
                 const lesson = document.getElementById(`les-${i}`).value;
                 const level = document.getElementById(`lvl-${i}`).value;
+                const sube = document.getElementById(`sub-${i}`).value;
                 if(empty) temp.push({day, idx: i, lesson: "BOŞ DERS", class: "-", isEmpty: true});
-                else if(lesson) temp.push({day, idx: i, lesson: lesson, class: level, isEmpty: false});
-            }
-            db.schedule = temp;
-            localStorage.setItem('dersPlan_v1', JSON.stringify(db));
-            setPage('home');
-        }
-
-        window.onload = () => {
-            const bar = document.getElementById('dayBar');
-            const bulkSelect = document.getElementById('bulkDay');
-            gunList.forEach(d => {
-                const btn = document.createElement('div');
-                btn.className = "day-tab";
-                btn.innerText = d;
-                btn.onclick = (e) => {
-                    currentActiveDay = d;
-                    document.querySelectorAll('.day-tab').forEach(t => t.classList.toggle('active', t.innerText === d));
-                    renderHome();
-                    e.target.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-                };
-                bar.appendChild(btn);
-                bulkSelect.innerHTML += `<option>${d}</option>`;
-            });
-            document.querySelector('.day-tab').classList.add('active');
-            document.getElementById('cfgStart').value = db.config.start;
-            document.getElementById('cfgDur').value = db.config.duration;
-            document.getElementById('cfgBreak').value = db.config.break;
-            document.getElementById('cfgLunch').value = db.config.lunch;
-            renderHome();
-        };
-    </script>
-</body>
-</html>
+                else if(lesson) temp.push({day, idx: i, lesson: lesson, class

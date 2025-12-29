@@ -52,7 +52,6 @@
         main { padding: 8px; width: 100%; max-width: 550px; margin: 0 auto; }
         .hidden { display: none !important; }
 
-        /* GÜN ÇUBUĞU - KAYDIRMA ÖZELLİĞİ EKLENDİ */
         .day-bar { 
             display: flex; gap: 6px; overflow-x: auto; padding: 5px 12px 10px 12px; 
             scrollbar-width: none; scroll-snap-type: x mandatory; 
@@ -75,7 +74,6 @@
         .lbl-time { width: 100px; margin-right: 8px; }
         .lbl-class { width: 65px; margin-right: 8px; text-align: center; }
 
-        /* KARTLAR - KOMPAKT TASARIM */
         .card {
             background: white; border-radius: 12px; padding: 10px 12px; margin-bottom: 6px;
             border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);
@@ -96,22 +94,25 @@
             line-height: 1.2;
         }
 
-        /* AYARLAR SAYFASI - ANA SAYFA İLE AYNI BOYUTLAR */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        input, select { height: 42px; font-size: 15px; border-radius: 10px; border: 1px solid var(--border); padding: 0 10px; font-weight: 600; width: 100%; }
-        label { font-size: 10px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; margin-bottom: 4px; display: block; }
+        input, select { height: 38px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); padding: 0 8px; font-weight: 600; width: 100%; }
+        label { font-size: 10px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; margin-bottom: 2px; display: block; }
 
         .lock-box {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #fecaca;
+            padding: 8px 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #fecaca;
         }
         .btn-action {
-            width: 100%; padding: 14px; border-radius: 12px; border: none;
-            background: var(--primary); color: white; font-weight: 800; font-size: 16px; cursor: pointer;
+            width: 100%; padding: 12px; border-radius: 12px; border: none;
+            background: var(--primary); color: white; font-weight: 800; font-size: 15px; cursor: pointer;
         }
 
         .fade { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* AYARLAR ÖZEL DARALTMA */
+        .settings-card { padding: 8px 10px !important; margin-bottom: 4px !important; }
+        .row-num { color: var(--primary); font-weight: 900; font-size: 13px; margin-right: 5px; min-width: 55px; }
     </style>
 </head>
 <body>
@@ -152,7 +153,7 @@
             <button onclick="handleLock()" id="lockToggle" style="padding:6px 12px; border-radius:8px; background:#f43f5e; color:white; border:none; font-weight:800; font-size:11px;">KİLİDİ AÇ</button>
         </div>
 
-        <div class="card" style="background: #fafbfc;">
+        <div class="card settings-card" style="background: #fafbfc;">
             <div class="grid-2">
                 <div><label>Başlangıç</label><input type="time" id="cfgStart" disabled></div>
                 <div><label>Ders (dk)</label><input type="number" id="cfgDur" disabled></div>
@@ -161,7 +162,7 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card settings-card">
             <label>DÜZENLENECEK GÜN</label>
             <select id="bulkDay" disabled onchange="renderBulkRows()" style="font-weight: 700;">
                 <option>Pazartesi</option><option>Salı</option><option>Çarşamba</option>
@@ -263,23 +264,24 @@
                 const s = db.schedule.find(x => x.day === day && x.idx === i) || {};
                 const lvl = s.class ? s.class.split('/')[0] : "";
                 const isEmpty = s.isEmpty === true;
-                html += `<div class="card" style="padding: 10px;">
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:5px; background:#f1f5f9; padding:6px; border-radius:8px;">
-                        <input type="checkbox" id="chk-${i}" ${isEmpty ? 'checked' : ''} onchange="toggleFormRow(${i})" ${!isEditingUnlocked ? 'disabled' : ''} style="width:18px; height:18px;">
-                        <label for="chk-${i}" style="margin:0; font-size:12px; color:var(--text-main);">Bu saatte dersim yok</label>
+                html += `<div class="card settings-card">
+                    <div style="display:flex; align-items:center; background:#f1f5f9; padding:4px 8px; border-radius:8px; margin-bottom:4px;">
+                        <span class="row-num">${i}. DERS</span>
+                        <input type="checkbox" id="chk-${i}" ${isEmpty ? 'checked' : ''} onchange="toggleFormRow(${i})" ${!isEditingUnlocked ? 'disabled' : ''} style="width:16px; height:16px; margin:0 6px 0 0;">
+                        <label for="chk-${i}" style="margin:0; font-size:11px; color:var(--text-main); text-transform:none;">Bu saatte dersim yok</label>
                     </div>
                     <div id="row-ui-${i}" style="${isEmpty ? 'opacity:0.3; pointer-events:none;' : ''}">
                         <div class="grid-2">
-                            <select id="lvl-${i}" onchange="updateFilters(${i})" ${!isEditingUnlocked ? 'disabled' : ''}>
+                            <select id="lvl-${i}" onchange="updateFilters(${i})" ${!isEditingUnlocked ? 'disabled' : ''} style="height:34px; font-size:13px;">
                                 <option value="">Sınıf</option>
                                 <option value="09" ${lvl=='09'?'selected':''}>9</option>
                                 <option value="10" ${lvl=='10'?'selected':''}>10</option>
                                 <option value="11" ${lvl=='11'?'selected':''}>11</option>
                                 <option value="12" ${lvl=='12'?'selected':''}>12</option>
                             </select>
-                            <select id="sub-${i}" ${!isEditingUnlocked ? 'disabled' : ''}><option value="">Şube</option></select>
+                            <select id="sub-${i}" ${!isEditingUnlocked ? 'disabled' : ''} style="height:34px; font-size:13px;"><option value="">Şube</option></select>
                         </div>
-                        <select id="les-${i}" style="margin-top:5px;" ${!isEditingUnlocked ? 'disabled' : ''}><option value="">Ders Seçin</option></select>
+                        <select id="les-${i}" style="margin-top:4px; height:34px; font-size:13px;" ${!isEditingUnlocked ? 'disabled' : ''}><option value="">Ders Seçin</option></select>
                     </div>
                 </div>`;
             }
@@ -343,7 +345,6 @@
                     currentActiveDay = d;
                     document.querySelectorAll('.day-tab').forEach(t => t.classList.toggle('active', t.innerText === d));
                     renderHome();
-                    // Tıklanan günü ortala
                     e.target.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
                 };
                 bar.appendChild(btn);

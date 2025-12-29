@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -6,134 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>DersPlan v1</title>
+    <title>DersPlan v1 - Okunaklı</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        
         :root {
-            --primary: #3b82f6;
+            --primary: #1d4ed8; /* Daha koyu mavi, yüksek kontrast */
             --primary-light: #eff6ff;
             --bg: #f8fafc;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
+            --text-main: #020617; /* Tam siyah, en iyi okuma deneyimi */
+            --text-sub: #334155;  /* Daha koyu gri */
             --card: #ffffff;
-            --border: #f1f5f9;
+            --border: #e2e8f0;
             --sat: env(safe-area-inset-top, 0px);
             --sab: env(safe-area-inset-bottom, 0px);
         }
 
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; }
         
-        body { 
+        body {
             background-color: var(--bg); font-family: 'Inter', sans-serif; margin: 0; color: var(--text-main);
-            padding-top: calc(125px + var(--sat)); padding-bottom: calc(20px + var(--sab));
+            padding-top: calc(140px + var(--sat)); padding-bottom: calc(30px + var(--sab));
             overflow-x: hidden;
         }
 
         .header-container {
             position: fixed; top: 0; left: 0; right: 0;
-            background: rgba(255, 255, 255, 0.9); z-index: 1000;
-            border-bottom: 1px solid var(--border); padding-top: var(--sat);
+            background: rgba(255, 255, 255, 0.98); z-index: 1000;
+            border-bottom: 2px solid var(--border); padding-top: var(--sat);
             backdrop-filter: blur(20px);
         }
 
-        .top-brand { height: 65px; display: flex; align-items: center; justify-content: center; }
-        .logo { font-weight: 800; font-size: 20px; letter-spacing: -0.5px; color: #1e293b; }
+        .top-brand { height: 60px; display: flex; align-items: center; justify-content: center; }
+        .logo { font-weight: 800; font-size: 24px; letter-spacing: -0.5px; color: #0f172a; }
         .logo span { color: var(--primary); font-weight: 900; }
 
-        .top-nav { display: flex; height: 60px; padding: 0 16px; gap: 8px; align-items: center; }
-
+        .top-nav { display: flex; height: 65px; padding: 0 16px; gap: 10px; align-items: center; }
         .nav-item {
-            flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-            height: 40px; border-radius: 20px; color: #94a3b8; cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;
+            height: 48px; border-radius: 24px; color: #64748b; cursor: pointer;
+            transition: all 0.3s; font-size: 14px; font-weight: 800; text-transform: uppercase;
         }
-        .nav-item.active { background: white; color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .nav-icon { width: 18px; height: 18px; stroke-width: 2.2; }
-        .nav-item.active .gear-icon { animation: rotate 4s linear infinite; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3); }
 
-        main { padding: 12px; width: 100%; max-width: 500px; margin: 0 auto; }
+        .nav-icon { width: 22px; height: 22px; stroke-width: 2.5; }
+
+        main { padding: 12px; width: 100%; max-width: 550px; margin: 0 auto; }
         .hidden { display: none !important; }
 
-        .day-bar { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0 12px 0; scrollbar-width: none; }
+        .day-bar { display: flex; gap: 8px; overflow-x: auto; padding: 10px 0 15px 0; scrollbar-width: none; }
         .day-bar::-webkit-scrollbar { display: none; }
         
-        .day-tab { 
-            padding: 8px 16px; border-radius: 12px; background: white; border: 1px solid var(--border);
-            font-size: 11px; font-weight: 600; white-space: nowrap; color: var(--text-sub); transition: all 0.3s;
+        .day-tab {
+            padding: 12px 22px; border-radius: 14px; background: white; border: 2px solid var(--border);
+            font-size: 15px; font-weight: 700; white-space: nowrap; color: var(--text-sub); transition: all 0.3s;
         }
-        .day-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25); }
+        .day-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
 
         .list-labels {
-            display: flex; align-items: center; padding: 0 12px 6px 12px;
-            font-size: 9px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.8px;
+            display: flex; align-items: center; padding: 0 12px 8px 12px;
+            font-size: 12px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;
         }
-        .lbl-idx { width: 20px; margin-right: 10px; }
-        .lbl-time { width: 90px; margin-right: 10px; }
-        .lbl-class { width: 55px; margin-right: 10px; text-align: center; }
-        .lbl-lesson { flex: 1; }
+        .lbl-idx { width: 30px; margin-right: 10px; }
+        .lbl-time { width: 110px; margin-right: 10px; }
+        .lbl-class { width: 70px; margin-right: 10px; text-align: center; }
 
-        .card { 
-            background: white; border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; 
-            border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            transition: transform 0.2s;
+        .card {
+            background: white; border-radius: 20px; padding: 18px 16px; margin-bottom: 12px;
+            border: 1px solid var(--border); box-shadow: 0 3px 10px rgba(0,0,0,0.03);
         }
-        .lesson-row { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; }
-        .card.is-empty { background: #fcfdfe; border-style: dashed; opacity: 0.6; }
-        
-        .item-idx { color: var(--primary); width: 20px; font-size: 11px; font-weight: 800; }
-        .item-time { color: var(--text-sub); width: 90px; font-size: 12px; font-weight: 500; }
-        .item-class { color: var(--primary); background: var(--primary-light); padding: 3px 8px; border-radius: 8px; width: 55px; text-align: center; font-size: 10px; font-weight: 800; }
+        .lesson-row { display: flex; align-items: center; gap: 12px; }
+
+        .item-idx { color: var(--primary); width: 30px; font-size: 18px; font-weight: 900; }
+        .item-time { color: var(--text-sub); width: 110px; font-size: 15px; font-weight: 700; line-height: 1.2; }
+        .item-class { 
+            color: var(--primary); background: var(--primary-light); 
+            padding: 6px 10px; border-radius: 10px; width: 70px; 
+            text-align: center; font-size: 14px; font-weight: 900; 
+        }
         .item-class.empty-val { background: transparent; color: transparent; }
-        .item-title { text-transform: uppercase; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); font-weight: 700; }
+        .item-title { 
+            text-transform: uppercase; flex: 1; 
+            color: var(--text-main); font-size: 17px; font-weight: 800; 
+            line-height: 1.3;
+        }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        label { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-bottom: 5px; display: block; padding-left: 4px; letter-spacing: 0.3px; }
-        input, select { 
-            width: 100%; height: 42px; border-radius: 12px; border: 1px solid #eef2f6; 
-            padding: 0 14px; font-size: 14px; outline: none; background: #fdfdfe; color: var(--text-main); 
-            transition: all 0.3s;
+        /* Ayarlar ve Form Elemanları */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        label { font-size: 12px; font-weight: 800; color: var(--text-main); text-transform: uppercase; margin-bottom: 8px; display: block; }
+        input, select {
+            width: 100%; height: 50px; border-radius: 14px; border: 2px solid #eef2f6;
+            padding: 0 14px; font-size: 16px; font-weight: 600; background: #fff; color: var(--text-main);
         }
-        input:focus, select:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08); }
-        
-        .lock-box { 
-            display: flex; align-items: center; justify-content: space-between; 
-            background: linear-gradient(135deg, #fff5f5 0%, #fff1f2 100%); 
-            border: 1px solid #fecaca; padding: 12px 16px; border-radius: 16px; margin-bottom: 12px; 
+
+        .lock-box {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px; border-radius: 18px; margin-bottom: 15px; border: 2px solid #fecaca;
         }
-        .lock-box.unlocked { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #bbf7d0; }
-        
-        .lock-btn { 
-            padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 11px; 
-            cursor: pointer; border: none; color: white; transition: all 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        .save-btn {
+            width: 100%; padding: 20px; border-radius: 18px; border: none;
+            background: var(--primary); color: white; font-weight: 800; font-size: 18px; margin-top: 15px;
         }
-        .btn-lock { background: #f43f5e; }
-        .btn-unlock { background: #10b981; }
-        
-        .save-btn { 
-            width: 100%; padding: 16px; border-radius: 16px; border: none; 
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
-            color: white; font-weight: 700; font-size: 14px; margin-top: 12px;
-            box-shadow: 0 6px 15px rgba(37, 99, 235, 0.2); transition: all 0.3s;
-        }
-        .save-btn:active { transform: scale(0.98); opacity: 0.9; }
-        .save-btn:disabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; }
-        
-        .bulk-grid { display: grid; grid-template-columns: 50px 1fr 1fr; gap: 8px; align-items: center; }
-        .empty-check { 
-            display: flex; align-items: center; gap: 8px; background: #f8fafc; 
-            padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #f1f5f9; 
-        }
-        .empty-check label { margin: 0; font-size: 10px; color: var(--text-main); font-weight: 600; cursor: pointer; }
-        
+
         .fade { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
-
     <div class="header-container">
         <header class="top-brand"><div class="logo">DERS<span>PLAN</span></div></header>
         <nav class="top-nav">
@@ -165,13 +143,13 @@
     <main id="pageSettings" class="hidden fade">
         <div class="lock-box" id="lockBox">
             <div>
-                <div style="font-weight:700; font-size:12px; color:#991b1b;" id="lockTxt">Düzenleme Kilidi Aktif</div>
-                <div style="font-size:10px; color:#64748b;">Değişiklik yapmak için kilidi açın</div>
+                <div style="font-weight:800; font-size:14px; color:#991b1b;" id="lockTxt">Düzenleme Kilidi Aktif</div>
+                <div style="font-size:11px; color:#64748b;">Değişiklik yapmak için kilidi açın</div>
             </div>
-            <button class="lock-btn btn-lock" id="lockToggle" onclick="handleLock()">KİLİDİ AÇ</button>
+            <button class="save-btn" style="width:auto; margin:0; padding:10px 15px; font-size:12px; background:#f43f5e;" id="lockToggle" onclick="handleLock()">KİLİDİ AÇ</button>
         </div>
 
-        <div class="card" style="padding: 12px; border-color: #f1f5f9; background: #fafbfc;">
+        <div class="card" style="background: #fafbfc;">
             <div class="grid-2">
                 <div><label>Başlangıç</label><input type="time" id="cfgStart" disabled></div>
                 <div><label>Ders (dk)</label><input type="number" id="cfgDur" disabled></div>
@@ -180,13 +158,14 @@
             </div>
         </div>
 
-        <div class="card" style="background: white; padding: 10px 14px; border-color: var(--primary-light);">
+        <div class="card">
             <label>GÜNCEL GÜN DÜZENLEME</label>
-            <select id="bulkDay" disabled onchange="renderBulkRows()" style="height: 38px; font-weight: 600;">
+            <select id="bulkDay" disabled onchange="renderBulkRows()" style="font-weight: 700;">
                 <option>Pazartesi</option><option>Salı</option><option>Çarşamba</option>
                 <option>Perşembe</option><option>Cuma</option><option>Cumartesi</option><option>Pazar</option>
             </select>
         </div>
+
         <div id="bulkRows"></div>
         <button class="save-btn" id="btnSave" disabled onclick="saveAll()">Değişiklikleri Uygula</button>
     </main>
@@ -198,12 +177,12 @@
             "11": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "TARİH", "COĞRAFYA", "FELSEFE", "TEFSİR", "AKAİD", "HİTABET", "MESLEKİ ARAPÇA", "KURAN-I KERİM", "SEÇMELİ DERS", "BEDEN EĞİTİMİ"],
             "12": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "T.C. İNKILAP TARİHİ", "COĞRAFYA", "DİNLER TARİHİ", "KELAM", "MESLEKİ ARAPÇA", "İSLAM KÜLTÜR VE MEDENİYETİ", "KURAN-I KERİM", "REHBERLİK", "SEÇMELİ DERS"]
         };
-        const classSubs = { 
-            "09": ["A", "B", "C", "D", "E", "I", "J"], "10": ["A", "B", "C", "D", "I", "J"], 
-            "11": ["A", "B", "I", "J"], "12": ["A", "B", "C", "I", "J"] 
+        const classSubs = {
+            "09": ["A", "B", "C", "D", "E", "I", "J"], "10": ["A", "B", "C", "D", "I", "J"],
+            "11": ["A", "B", "I", "J"], "12": ["A", "B", "C", "I", "J"]
         };
         const gunList = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
-
+        
         let db = JSON.parse(localStorage.getItem('dersPlan_v1')) || {
             schedule: [],
             config: { start: "08:15", duration: 40, break: 10, lunch: 45 }
@@ -237,10 +216,12 @@
 
         function handleLock() {
             isEditingUnlocked = !isEditingUnlocked;
-            document.getElementById('lockBox').classList.toggle('unlocked', isEditingUnlocked);
+            const lb = document.getElementById('lockBox');
+            lb.style.background = isEditingUnlocked ? "#f0fdf4" : "#fff5f5";
+            lb.style.borderColor = isEditingUnlocked ? "#bbf7d0" : "#fecaca";
             document.getElementById('lockToggle').innerText = isEditingUnlocked ? "KİLİTLE" : "KİLİDİ AÇ";
             document.getElementById('lockTxt').innerText = isEditingUnlocked ? "Düzenleme Aktif" : "Düzenleme Kilidi Aktif";
-            document.getElementById('lockTxt').style.color = isEditingUnlocked ? "#065f46" : "#991b1b";
+            document.getElementById('lockTxt').style.color = isEditingUnlocked ? "#166534" : "#991b1b";
             document.querySelectorAll('#pageSettings input, #pageSettings select, #btnSave').forEach(el => el.disabled = !isEditingUnlocked);
             renderBulkRows();
         }
@@ -250,7 +231,7 @@
             const dayData = db.schedule.filter(s => s.day === currentActiveDay).sort((a,b) => a.idx - b.idx);
             const times = getTimes();
             if(dayData.length === 0) {
-                list.innerHTML = `<div class="card" style="text-align:center; padding:30px; color:var(--text-sub); font-size:12px;">Henüz bu gün için ders girişi yapılmamış</div>`;
+                list.innerHTML = `<div class="card" style="text-align:center; padding:40px; color:var(--text-sub); font-size:16px; font-weight:600;">Henüz bu gün için ders girişi yapılmamış</div>`;
                 return;
             }
             let html = "";
@@ -259,15 +240,12 @@
                 let [h, m] = times[s.idx-1].split(':').map(Number);
                 let d = new Date(); d.setHours(h, m + parseInt(db.config.duration));
                 let endTime = String(d.getHours()).padStart(2, '0') + ":" + String(d.getMinutes()).padStart(2, '0');
-                
-                // BOŞ DERS seçildiğinde sınıf kutucuğu içeriğini gizle
                 const classLabel = isEmpty ? '' : s.class.replace('/', ' / ');
                 const classClass = isEmpty ? 'item-class empty-val' : 'item-class';
-
-                html += `<div class="card ${isEmpty ? 'is-empty' : ''}">
+                html += `<div class="card ${isEmpty ? 'is-empty' : ''}" style="${isEmpty ? 'opacity:0.5; background:#f8fafc; border-style:dashed;' : ''}">
                     <div class="lesson-row">
                         <div class="item-idx">${s.idx}</div>
-                        <div class="item-time">${times[s.idx-1]} - ${endTime}</div>
+                        <div class="item-time">${times[s.idx-1]}<br><span style="font-size:12px; opacity:0.7;">${endTime}</span></div>
                         <div class="${classClass}">${classLabel}</div>
                         <div class="item-title">${isEmpty ? 'BOŞ DERS' : s.lesson}</div>
                     </div>
@@ -284,24 +262,23 @@
                 const s = db.schedule.find(x => x.day === day && x.idx === i) || {};
                 const lvl = s.class ? s.class.split('/')[0] : "";
                 const isEmpty = s.isEmpty === true;
-                html += `<div class="card" style="padding: 10px 12px; border-color: #f1f5f9;">
-                    <div class="empty-check">
-                        <input type="checkbox" id="chk-${i}" ${isEmpty ? 'checked' : ''} onchange="toggleFormRow(${i})" ${!isEditingUnlocked ? 'disabled' : ''}>
-                        <label for="chk-${i}">Bu saat dersim yok</label>
+                html += `<div class="card" style="padding: 12px; border-color: #e2e8f0;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px; background:#f1f5f9; padding:8px; border-radius:10px;">
+                        <input type="checkbox" id="chk-${i}" ${isEmpty ? 'checked' : ''} onchange="toggleFormRow(${i})" ${!isEditingUnlocked ? 'disabled' : ''} style="width:22px; height:22px;">
+                        <label for="chk-${i}" style="margin:0; font-size:14px;">Bu saatte dersim yok</label>
                     </div>
                     <div id="row-ui-${i}" style="${isEmpty ? 'opacity:0.3; pointer-events:none;' : ''}">
-                        <div class="bulk-grid">
-                            <span style="font-size:9px; font-weight:700; color:var(--text-sub);">${i}. DERS</span>
-                            <select id="lvl-${i}" onchange="updateFilters(${i})" ${!isEditingUnlocked ? 'disabled' : ''} style="height:34px; font-size:12px; font-weight:600;">
+                        <div class="grid-2">
+                            <select id="lvl-${i}" onchange="updateFilters(${i})" ${!isEditingUnlocked ? 'disabled' : ''}>
                                 <option value="">Sınıf</option>
                                 <option value="09" ${lvl=='09'?'selected':''}>9</option>
                                 <option value="10" ${lvl=='10'?'selected':''}>10</option>
                                 <option value="11" ${lvl=='11'?'selected':''}>11</option>
                                 <option value="12" ${lvl=='12'?'selected':''}>12</option>
                             </select>
-                            <select id="sub-${i}" ${!isEditingUnlocked ? 'disabled' : ''} style="height:34px; font-size:12px; font-weight:600;"><option value="">Şube</option></select>
+                            <select id="sub-${i}" ${!isEditingUnlocked ? 'disabled' : ''}><option value="">Şube</option></select>
                         </div>
-                        <select id="les-${i}" style="margin-top:6px; height:34px; font-size:12px; font-weight:600;" ${!isEditingUnlocked ? 'disabled' : ''}><option value="">Ders Seçin</option></select>
+                        <select id="les-${i}" style="margin-top:10px;" ${!isEditingUnlocked ? 'disabled' : ''}><option value="">Ders Seçin</option></select>
                     </div>
                 </div>`;
             }

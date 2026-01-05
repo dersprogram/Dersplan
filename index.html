@@ -525,6 +525,23 @@
     .tTime{ font-size:10px; opacity:.65; line-height:1.05; }
     .weekGrid th{ padding: 6px 4px; }
 
+
+    /* ===== Responsive (Dikey / Yatay) ===== */
+    @media (orientation: portrait){
+      .weekGrid th, .weekGrid td{ font-size: 10px; }
+      .wCls{ font-size: 10px; }
+      .wLes{ font-size: 10px; }
+      .tNo{ font-size: 10px; }
+      .tTime{ font-size: 9px; }
+    }
+    @media (orientation: landscape){
+      .weekGrid th, .weekGrid td{ font-size: 12px; }
+      .wCls{ font-size: 12px; }
+      .wLes{ font-size: 12px; }
+      .tNo{ font-size: 12px; }
+      .tTime{ font-size: 11px; }
+    }
+
 </style>
 </head>
 
@@ -1353,6 +1370,25 @@
       return s.slice(0, max-1).trim() + "…";
     }
 
+    
+    function shortDayName(name){
+      const MAP = {
+        "PAZARTESİ":"PZT",
+        "PAZARTESI":"PZT",
+        "SALI":"SAL",
+        "ÇARŞAMBA":"ÇAR",
+        "CARSAMBA":"ÇAR",
+        "PERŞEMBE":"PER",
+        "PERSEMBE":"PER",
+        "CUMA":"CUM",
+        "CUMARTESİ":"CMT",
+        "CUMARTESI":"CMT",
+        "PAZAR":"PAZ"
+      };
+      const up = String(name||"").toUpperCase();
+      return MAP[up] || name;
+    }
+
     window.renderWeeklyGrid = function(){
       const wrap = document.getElementById("weeklyGridWrap");
       if(!wrap) return;
@@ -1406,7 +1442,7 @@
 
         const dayTh = document.createElement("th");
         dayTh.className = "stickyLeft";
-        dayTh.textContent = DAYS[d] || ("Gün " + (d+1));
+        dayTh.textContent = shortDayName(DAYS[d] || ("Gün " + (d+1)));
         tr.appendChild(dayTh);
 
         for(let i=0; i<maxLessons; i++){

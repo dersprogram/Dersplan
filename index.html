@@ -1,403 +1,1438 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>DersPlan v1 - Akıllı Kaydırma</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        
-        :root {
-            --primary: #1d4ed8;
-            --primary-light: #eff6ff;
-            --bg: #f8fafc;
-            --text-main: #020617;
-            --text-sub: #334155;
-            --card: #ffffff;
-            --border: #e2e8f0;
-            --sat: env(safe-area-inset-top, 0px);
-            --sab: env(safe-area-inset-bottom, 0px);
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DERS-TAKİP</title>
+  <style>
+    :root{
+      --orange:#ff7a00;
+      --bg:#0b1220;
+      --panel:rgba(255,255,255,0.06);
+      --line:rgba(255,255,255,0.10);
+      --text:#ffffff;
+      --muted:rgba(255,255,255,0.70);
+      --radius:22px;
+      --frame:3px;   /* turuncu şerit kalınlığı */
+      --inset:10px;  /* ekran kenarından boşluk */
+      --innerPad:14px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
 
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; }
-        
-        body {
-            background-color: var(--bg); font-family: 'Inter', sans-serif; margin: 0; color: var(--text-main);
-            padding-top: calc(110px + var(--sat)); padding-bottom: calc(15px + var(--sab));
-            overflow-x: hidden;
-        }
+    html, body{
+      height:100%;
+      margin:0;
+      background:#000;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overscroll-behavior:none;
+    }
 
-        .header-container {
-            position: fixed; top: 0; left: 0; right: 0;
-            background: rgba(255, 255, 255, 0.98); z-index: 1000;
-            border-bottom: 2px solid var(--border); padding-top: var(--sat);
-            backdrop-filter: blur(20px);
-        }
+    /* Uygulama ekranı */
+    .app{
+      position:relative;
+      height:100vh;
+      width:100vw;
+      background:var(--bg);
+      overflow:hidden; /* içerik şeridin altına girince kaybolsun */
+    }
 
-        .top-brand { height: 40px; display: flex; align-items: center; justify-content: center; }
-        .logo { font-weight: 800; font-size: 18px; color: #0f172a; }
-        .logo span { color: var(--primary); font-weight: 900; }
+    /* Kaydırılan içerik alanı */
+    .scrollArea{
+      position:absolute;
+      inset:var(--inset);
+      padding: calc(var(--innerPad) + var(--frame));
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+      border-radius: var(--radius);
+      clip-path: inset(0 round var(--radius));
+    }
 
-        .top-nav { display: flex; height: 45px; padding: 0 12px; gap: 8px; align-items: center; }
-        .nav-item {
-            flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-            height: 35px; border-radius: 10px; color: #64748b; cursor: pointer;
-            font-size: 12px; font-weight: 800; text-transform: uppercase;
-        }
-        .nav-item.active { background: var(--primary); color: white; }
-        .nav-icon { width: 16px; height: 16px; stroke-width: 2.5; }
+    /* Turuncu şerit: sabit çerçeve */
+    .frame{
+      position:fixed;
+      left:var(--inset);
+      top:var(--inset);
+      right:var(--inset);
+      bottom:var(--inset);
+      border: var(--frame) solid var(--orange);
+      border-radius: var(--radius);
+      pointer-events:none;
+      z-index:9999;
+      box-sizing:border-box;
+    }
 
-        main { padding: 8px; width: 100%; max-width: 550px; margin: 0 auto; min-height: 60vh; }
-        .hidden { display: none !important; }
+    /* Üst alan */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      padding: 6px 0 12px;
+      background: linear-gradient(to bottom, rgba(11,18,32,0.96), rgba(11,18,32,0.70), rgba(11,18,32,0));
+      backdrop-filter: blur(6px);
+    }
 
-        .day-bar { 
-            display: flex; gap: 6px; overflow-x: auto; padding: 5px 12px 10px 12px; 
-            scrollbar-width: none; scroll-snap-type: x mandatory; 
-            -webkit-overflow-scrolling: touch;
-        }
-        .day-bar::-webkit-scrollbar { display: none; }
-        
-        .day-tab {
-            padding: 8px 16px; border-radius: 10px; background: white; border: 1px solid var(--border);
-            font-size: 14px; font-weight: 700; white-space: nowrap; color: var(--text-sub);
-            scroll-snap-align: start; flex-shrink: 0;
-        }
-        .day-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .appTitle{
+      color:var(--text);
+      font-weight:900;
+      letter-spacing:2px;
+      text-align:center;
+      font-size:24px;
+      margin: 6px 0 12px;
+      user-select:none;
+    }
+    .accent{ color: var(--orange); }
 
-        .list-labels {
-            display: flex; align-items: center; padding: 0 10px 5px 10px;
-            font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase;
-        }
-        .lbl-idx { width: 25px; margin-right: 8px; }
-        .lbl-time { width: 100px; margin-right: 8px; }
-        .lbl-class { width: 65px; margin-right: 8px; text-align: center; }
+    .modeToggle{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin: 0 0 12px;
+    }
+    .modeBtn{
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color:var(--text);
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      cursor:pointer;
+    }
+    .modeBtn.active{
+      background: var(--orange);
+      border-color: transparent;
+      color:#10131a;
+    }
 
-        .card {
-            background: white; border-radius: 12px; padding: 10px 12px; margin-bottom: 6px;
-            border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .lesson-row { display: flex; align-items: center; gap: 8px; }
+    .dayTabs{
+      display:flex;
+      gap:10px;
+      overflow-x:auto;
+      padding: 2px 2px 6px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width:none;
+    }
+    .dayTabs::-webkit-scrollbar{ display:none; }
 
-        .item-idx { color: var(--primary); width: 25px; font-size: 18px; font-weight: 900; }
-        .item-time { color: var(--text-sub); width: 100px; font-size: 14px; font-weight: 700; line-height: 1.1; }
-        .item-class { 
-            color: var(--primary); background: var(--primary-light); 
-            padding: 4px 6px; border-radius: 8px; width: 65px; 
-            text-align: center; font-size: 13px; font-weight: 900; 
-        }
-        .item-class.empty-val { background: transparent; color: transparent; }
-        .item-title { 
-            text-transform: uppercase; flex: 1; 
-            color: var(--text-main); font-size: 17px; font-weight: 800; 
-            line-height: 1.2;
-        }
+    .dayTab{
+      flex:0 0 auto;
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color:var(--text);
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-weight: 900;
+      opacity:0.85;
+      cursor:pointer;
+    }
+    .dayTab.active{
+      background: var(--orange);
+      color:#10131a;
+      border-color: transparent;
+      opacity:1;
+    }
 
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        input, select { height: 38px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); padding: 0 8px; font-weight: 600; width: 100%; }
-        label { font-size: 10px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; margin-bottom: 2px; display: block; }
+    /* Swipe alanı */
+    .daySwipe{
+      overflow:hidden;
+      border-radius: 16px;
+      margin-top: 6px;
+    }
+    .dayTrack{
+      display:flex;
+      width:700%;
+      transform: translateX(0%);
+      transition: transform 220ms ease;
+      will-change: transform;
+    }
+    .dayPage{
+      width: calc(100% / 7);
+      padding: 6px 0 16px;
+      min-height: 260px;
+    }
 
-        .lock-box {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #fecaca;
-        }
-        .btn-action {
-            width: 100%; padding: 12px; border-radius: 12px; border: none;
-            background: var(--primary); color: white; font-weight: 800; font-size: 15px; cursor: pointer;
-        }
+    /* Tablo kartı */
+    .tableCard{
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      overflow:hidden;
+    }
+    .tableHeader{
+      /* başlık hizaları */
+      display:grid;
+      grid-template-columns: 26px 42px 1fr 70px 1.4fr;
+      padding: 12px 12px 10px;
+      color: rgba(255,255,255,0.70);
+      font-weight: 900;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      user-select:none;
+    }
 
-        .fade { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    /* Başlık hizaları (resimdeki gibi) */
+    .tableHeader > div:nth-child(1){ text-align:center; } /* nokta sütunu boş */
+    .tableHeader > div:nth-child(2){ text-align:center; } /* # */
+    .tableHeader > div:nth-child(3){ text-align:left; }   /* ZAMAN */
+    .tableHeader > div:nth-child(4){ text-align:center; } /* SINIF */
+    .tableHeader > div:nth-child(5){ text-align:left; }   /* DERS */
+    /* Başlıkları alanlarla birebir hizalamak için küçük kaydırma */
 
-        /* AYARLAR ÖZEL */
-        .settings-card { padding: 8px 10px !important; margin-bottom: 4px !important; }
-        .row-num { color: var(--primary); font-weight: 900; font-size: 13px; margin-right: 5px; min-width: 55px; }
-        
-        /* Seçilen günün kırmızı olması için stil */
-        #bulkDay { color: #dc2626; border: 1.5px solid #fca5a5; }
-        #bulkDay option { color: #020617; } /* Diğer seçenekler normal renk kalsın */
-    </style>
+    .row{
+      display:grid;
+      grid-template-columns: 26px 42px 1fr 70px 1.4fr;
+      padding: 12px 12px;
+      align-items:center;
+      border-bottom: 1px solid var(--line);
+      position: relative;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .row:last-child{ border-bottom: none; }
+    .row:active{ background: rgba(255,255,255,0.04); }
+
+    .dotBtn{
+      width: 18px;
+      height: 18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background: transparent;
+      box-shadow: none;
+    }
+    .dot.on{
+      background: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255,122,0,0.16);
+    }
+
+    .no{
+      color: var(--orange);
+      font-weight: 1000;
+      font-size: 18px;
+      text-align:center;
+    }
+    .time{
+      color: rgba(255,255,255,0.75);
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      font-size: 15px;
+      white-space: nowrap;
+    }
+    .class{
+      color: var(--orange);
+      font-weight: 1000;
+      letter-spacing: 0.5px;
+      text-align:center;
+      white-space: nowrap;
+    }
+    .lesson{
+      color: var(--text);
+      font-weight: 1000;
+      letter-spacing: 0.6px;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Haftalık placeholder */
+    .weeklyWrap{ display:none; margin-top: 10px; }
+    .noteCard{
+      margin-top: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 12px;
+      color: rgba(255,255,255,0.85);
+      font-weight: 700;
+    }
+    .muted{ color: rgba(255,255,255,0.65); font-weight: 700; }
+
+    /* Modal (nokta tıkla / uzun bas) */
+    .modalOverlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display:none;
+      align-items: flex-end;
+      z-index: 9998; /* frame 9999 üstte, ama pointer-events none */
+    }
+    .modalOverlay.show{ display:flex; }
+
+    .sheet{
+      width: 100%;
+      max-height: 88vh;
+      background: rgba(13,20,36,0.96);
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: var(--shadow);
+      padding: 14px 14px 18px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .sheetHeader{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .sheetTitle{
+      color:#fff;
+      font-weight: 1000;
+      letter-spacing: 1px;
+      font-size: 16px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pill{
+      font-weight: 1000;
+      color:#10131a;
+      background: var(--orange);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .btn{
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color:#fff;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor:pointer;
+    }
+    .btnPrimary{
+      background: var(--orange);
+      border-color: transparent;
+      color:#10131a;
+    }
+    .btnRow{
+      display:flex;
+      gap:10px;
+      margin-top: 12px;
+    }
+    .field{
+      margin-top: 10px;
+    }
+    .label{
+      color: rgba(255,255,255,0.70);
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    input, textarea{
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color:#fff;
+      padding: 12px;
+      font-weight: 700;
+      outline: none;
+    }
+    textarea{ min-height: 86px; resize: vertical; }
+
+    .hr{
+      height: 1px;
+      background: rgba(255,255,255,0.10);
+      margin: 12px 0;
+    }
+
+    .hint{
+      color: rgba(255,255,255,0.60);
+      font-weight: 700;
+      font-size: 12px;
+      line-height: 1.35;
+      margin-top: 10px;
+    }
+
+    button{ -webkit-tap-highlight-color: transparent; }
+  
+    /* NOTLAR butonu (günlük tablonun altında, sol altta) */
+    .notesEntry{
+      display:flex;
+      justify-content:flex-start;
+      margin-top: 14px;
+    }
+    .notesBtn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color:#fff;
+      font-weight: 1000;
+      letter-spacing: 1px;
+      border-radius: 14px;
+      padding: 10px 14px;
+      cursor:pointer;
+    }
+    .notesDot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background: transparent;
+    }
+    #notesOverlay{ z-index: 10000; }
+    
+    #notesOverlay.show{ display:flex; }
+
+
+    .notesDot.on{
+      background: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255,122,0,0.16);
+    }
+
+    /* NOTLAR filtreleri */
+    .filters{
+      display:flex;
+      gap:10px;
+      overflow-x:auto;
+      padding: 2px 2px 8px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width:none;
+    }
+    .filters::-webkit-scrollbar{ display:none; }
+    .filterBtn{
+      flex:0 0 auto;
+      border:1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color:#fff;
+      font-weight: 1000;
+      letter-spacing: 0.6px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor:pointer;
+      opacity: 0.9;
+      white-space: nowrap;
+    }
+    .filterBtn.active{
+      background: var(--orange);
+      border-color: transparent;
+      color:#10131a;
+      opacity: 1;
+    }
+
+    .notesItemTitle{
+      font-weight: 1000;
+      letter-spacing: 0.4px;
+      margin-bottom: 6px;
+      color:#fff;
+    }
+    .notesItemMeta{
+      color: rgba(255,255,255,0.70);
+      font-weight: 800;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+  
+          .tableHeader > div:nth-child(5){ padding-left: 6px; }
+    }
+
+  
+    /* Web'de de telefon görünümü gibi olsun */
+    .scrollArea{
+      max-width: 390px; /* webde TAM telefon hissi */
+      width: 100%;
+      margin: 0 auto;
+    }
+
+  
+    @media (max-width: 480px){
+      /* Telefonda başlık metinleri (SINIF/DERS) görsel olarak biraz sola kayabiliyor */
+      .tableHeader{ letter-spacing: 0.6px; }
+      .tableHeader > div{ justify-self: stretch; }
+      .tableHeader > div:nth-child(4){
+        justify-self: center;
+        padding-left: 18px;
+      }
+      .tableHeader > div:nth-child(5){
+        justify-self: start;
+        padding-left: 20px;
+      }
+    }
+
+  
+    /* TELEFON GÖRÜNÜMÜ – eski dar tasarıma benzer */
+    body{
+      display:flex;
+      justify-content:center;
+    }
+    .app{
+      width:100%;
+      max-width: 420px;
+    }
+
+
+    /* ===== HAFTALIK TABLO (GÜNLÜKTEN BAĞIMSIZ) ===== */
+    #weeklyGridWrap{
+      width:100%;
+      overflow-x:auto;
+      margin-top: 10px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    table.weekGrid{
+      border-collapse: separate;
+      border-spacing: 0;
+      width: max-content;
+      min-width: 100%;
+      font-size: 12px;
+      color: rgba(255,255,255,0.92);
+    }
+    .weekGrid th, .weekGrid td{
+      padding: 8px 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-right: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.05);
+      vertical-align: top;
+      text-align: left;
+    }
+    .weekGrid th{
+      font-weight: 950;
+      letter-spacing: 0.6px;
+      color: rgba(255,255,255,0.78);
+      background: rgba(255,255,255,0.04);
+      text-align: center;
+    }
+    .weekGrid .stickyTop{ position: sticky; top: 0; z-index: 3; }
+    .weekGrid .stickyLeft{ position: sticky; left: 0; z-index: 2; background: rgba(10,14,22,0.94); text-align:left; }
+    .weekGrid .corner{ z-index: 4; background: rgba(10,14,22,0.98); }
+    .weekGrid tr:last-child td{ border-bottom: none; }
+    .weekGrid td:last-child, .weekGrid th:last-child{ border-right: none; }
+    \.wCell{ min-width: 76px; max-width: 96px; }
+    .wCls{ display:block; font-weight: 1000; color: var(--orange); margin-bottom: 3px; font-size: 11px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wLes{ display:-webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 950; color: rgba(255,255,255,0.95); font-size: 11px; line-height: 1.15; }
+
+
+    .tNo{ font-weight:900; font-size:11px; margin-bottom:2px; }
+    .tTime{ font-size:10px; opacity:.65; line-height:1.05; }
+    .weekGrid th{ padding: 6px 4px; }
+
+</style>
 </head>
-<body id="swipeArea">
-    <div class="header-container">
-        <header class="top-brand"><div class="logo">DERS<span>PLAN</span></div></header>
-        <nav class="top-nav">
-            <div class="nav-item active" id="btnHome" onclick="setPage('home')">
-                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                <span>PROGRAM</span>
-            </div>
-            <div class="nav-item" id="btnSettings" onclick="setPage('settings')">
-                <svg class="nav-icon gear-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                <span>AYARLAR</span>
-            </div>
-        </nav>
+
+<body>
+  <div class="app">
+    <div class="scrollArea">
+
+      <div class="topbar">
+        <div class="appTitle">DERS-<span class="accent">TAKİP</span></div>
+
+        <div class="modeToggle" role="tablist" aria-label="Yayın modu">
+          <button class="modeBtn active" id="modeDaily" type="button">GÜNLÜK</button>
+          <button class="modeBtn" id="modeWeekly" type="button">HAFTALIK</button>
+        </div>
+
+        <div class="dayTabs" id="dayTabs" aria-label="Günler">
+          <button class="dayTab active" data-day="0" type="button">Pazartesi</button>
+          <button class="dayTab" data-day="1" type="button">Salı</button>
+          <button class="dayTab" data-day="2" type="button">Çarşamba</button>
+          <button class="dayTab" data-day="3" type="button">Perşembe</button>
+          <button class="dayTab" data-day="4" type="button">Cuma</button>
+          <button class="dayTab" data-day="5" type="button">Cumartesi</button>
+          <button class="dayTab" data-day="6" type="button">Pazar</button>
+        </div>
+      </div>
+
+      <!-- GÜNLÜK -->
+      <div id="dailyWrap">
+        <div class="daySwipe" id="daySwipe">
+          <div class="dayTrack" id="dayTrack">
+            <!-- Sayfalar JS ile doldurulacak -->
+          </div>
+        </div>
+
+
+        <div class="notesEntry">
+          <button class="notesBtn" id="notesBtn" type="button" onclick="window.__openNotes && window.__openNotes()">
+            NOTLAR <span class="notesDot" id="notesDot"></span>
+          </button>
+        </div>
+
+        <div class="hint">
+          • Ana sayfa temiz: sadece dersler görünür.<br>
+          • Ders satırına <b>basılı tut</b> → ilk not/ödev/sınav girişini açar.<br>
+          • Turuncu <b>nokta</b> varsa dokun → kayıtlı bilgi sayfasını açar.
+        </div>
+      </div>
+
+      <!-- HAFTALIK (sonraki aşama) -->
+      <div class="weeklyWrap" id="weeklyWrap">
+        <div id="weeklyGridWrap"></div>
+      </div>
+        </div>
+      </div>
+
+      <div style="height: 120px"></div>
     </div>
 
-    <main id="pageHome">
-        <div class="day-bar" id="dayBar"></div>
-        <div class="list-labels">
-            <div class="lbl-idx">#</div>
-            <div class="lbl-time">ZAMAN</div>
-            <div class="lbl-class">SINIF</div>
-            <div class="lbl-lesson">DERS</div>
-        </div>
-        <div id="scheduleList" class="fade"></div>
-    </main>
+    <div class="frame" aria-hidden="true"></div>
+  </div>
 
-    <main id="pageSettings" class="hidden fade">
-        <div class="lock-box" id="lockBox" style="background: #fff5f5;">
-            <div>
-                <div style="font-weight:800; font-size:13px; color:#991b1b;" id="lockTxt">DÜZENLEME KİLİDİ</div>
-                <div style="font-size:10px; color:#64748b;">Değişiklik için kilidi açın</div>
-            </div>
-            <button onclick="handleLock()" id="lockToggle" style="padding:6px 12px; border-radius:8px; background:#f43f5e; color:white; border:none; font-weight:800; font-size:11px;">KİLİDİ AÇ</button>
+  <!-- Modal: nokta tıkla / uzun bas -->
+  <div class="modalOverlay" id="overlay" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Ders notu">
+      <div class="sheetHeader">
+        <div style="min-width:0">
+          <div class="sheetTitle" id="sheetTitle">Ders</div>
+          <div class="muted" id="sheetSub">—</div>
         </div>
+        <div class="pill" id="sheetMode">BİLGİ</div>
+      </div>
 
-        <div class="card settings-card" style="background: #fafbfc;">
-            <div class="grid-2">
-                <div><label>Başlangıç</label><input type="time" id="cfgStart" disabled></div>
-                <div><label>Ders (dk)</label><input type="number" id="cfgDur" disabled></div>
-                <div><label>Teneffüs</label><input type="number" id="cfgBreak" disabled></div>
-                <div><label>Öğle Arası</label><input type="number" id="cfgLunch" disabled></div>
-            </div>
+      <div id="viewPanel">
+        <div class="noteCard" style="margin-top:0">
+          <div><b>Ödev</b></div>
+          <div class="muted" id="vHomework">—</div>
+          <div class="hr"></div>
+          <div><b>Not</b></div>
+          <div class="muted" id="vNote">—</div>
+          <div class="hr"></div>
+          <div><b>Sınav</b></div>
+          <div class="muted" id="vExam">—</div>
         </div>
 
-        <div class="card settings-card">
-            <label>DÜZENLENECEK GÜN</label>
-            <select id="bulkDay" disabled onchange="renderBulkRows()" style="font-weight: 800;">
-                <option>Pazartesi</option><option>Salı</option><option>Çarşamba</option>
-                <option>Perşembe</option><option>Cuma</option><option>Cumartesi</option><option>Pazar</option>
-            </select>
+        <div class="btnRow">
+          <button class="btn" id="btnClose" type="button">Kapat</button>
+          <button class="btn btnPrimary" id="btnEdit" type="button">Düzenle</button>
+        </div>
+      </div>
+
+      <div id="editPanel" style="display:none">
+        <div class="field">
+          <div class="label">ÖDEV</div>
+          <textarea id="iHomework" placeholder="Ödev yaz..."></textarea>
+        </div>
+        <div class="field">
+          <div class="label">NOT</div>
+          <textarea id="iNote" placeholder="Not yaz..."></textarea>
+        </div>
+        <div class="field">
+          <div class="label">SINAV TARİHİ</div>
+          <input id="iExamDate" type="date" />
+        </div>
+        <div class="field">
+          <div class="label">SINAV AÇIKLAMA</div>
+          <textarea id="iExamNote" placeholder="Sınav konusu / açıklama..."></textarea>
         </div>
 
-        <div id="bulkRows"></div>
-        <button class="btn-action" id="btnSave" disabled onclick="saveAll()" style="margin-top: 5px;">Değişiklikleri Uygula</button>
-    </main>
+        <div class="btnRow">
+          <button class="btn" id="btnCancel" type="button">Vazgeç</button>
+          <button class="btn btnPrimary" id="btnSave" type="button">Kaydet</button>
+        </div>
+        <div class="hint">
+          Kayıtlar telefonda saklanır (internet olmasa da çalışır).<br>
+          İstersen sonraki aşamada “Yedekle / Geri Yükle” ekleriz.
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        const lessons = {
-            "09": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "FİZİK", "KİMYA", "BİYOLOJİ", "TARİH", "COĞRAFYA", "ARAPÇA", "KURAN-I KERİM", "BEDEN EĞİTİMİ", "SAĞLIK BİLGİSİ", "REHBERLİK", "TEMEL DİNİ BİLGİLER"],
-            "10": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "FİZİK", "KİMYA", "BİYOLOJİ", "TARİH", "COĞRAFYA", "FELSEFE", "HADİS", "FIKIH", "SİYER", "ARAPÇA", "KURAN-I KERİM", "BEDEN EĞİTİMİ"],
-            "11": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "TARİH", "COĞRAFYA", "FELSEFE", "TEFSİR", "AKAİD", "HİTABET", "MESLEKİ ARAPÇA", "KURAN-I KERİM", "SEÇMELİ DERS", "BEDEN EĞİTİMİ"],
-            "12": ["TÜRK DİLİ VE EDEBİYATI", "MATEMATİK", "İNGİLİZCE", "T.C. İNKILAP TARİHİ", "COĞRAFYA", "DİNLER TARİHİ", "KELAM", "MESLEKİ ARAPÇA", "İSLAM KÜLTÜR VE MEDENİYETİ", "KURAN-I KERİM", "REHBERLİK", "SEÇMELİ DERS"]
-        };
-        const classSubs = {
-            "09": ["A", "B", "C", "D", "E", "I", "J"], "10": ["A", "B", "C", "D", "I", "J"],
-            "11": ["A", "B", "I", "J"], "12": ["A", "B", "C", "I", "J"]
-        };
-        const gunList = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
-        
-        let db = JSON.parse(localStorage.getItem('dersPlan_v1')) || {
-            schedule: [],
-            config: { start: "08:15", duration: 40, break: 10, lunch: 45 }
-        };
 
-        // Otomatik gün tespiti (Pazar günü için düzeltildi)
-        let dayIdx = new Date().getDay();
-        let currentActiveDay = gunList[dayIdx === 0 ? 6 : dayIdx - 1] || "Pazartesi";
-        let isEditingUnlocked = false;
 
-        function getTimes() {
-            let res = []; let time = db.config.start || "08:15";
-            for(let i=0; i<8; i++) {
-                res.push(time);
-                let [h, m] = time.split(':').map(Number);
-                let d = new Date(); d.setHours(h, m + parseInt(db.config.duration));
-                let gap = (i === 4) ? parseInt(db.config.lunch) : parseInt(db.config.break);
-                d.setMinutes(d.getMinutes() + gap);
-                time = String(d.getHours()).padStart(2, '0') + ":" + String(d.getMinutes()).padStart(2, '0');
-            }
-            return res;
+  <!-- NOTLAR -->
+  <div class="modalOverlay" id="notesOverlay" aria-hidden="true">
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="Notlar">
+      <div class="sheetHeader">
+        <div class="sheetTitle">NOTLAR</div>
+        <button class="btn" id="btnNotesClose" type="button">Kapat</button>
+      </div>
+
+      <div class="filters" aria-label="Filtreler">
+        <button class="filterBtn active" data-filter="all" type="button">Hepsi</button>
+        <button class="filterBtn" data-filter="homework" type="button">Ödev</button>
+        <button class="filterBtn" data-filter="note" type="button">Not</button>
+        <button class="filterBtn" data-filter="exam" type="button">Sınav</button>
+      </div>
+
+      <div id="notesList"></div>
+    </div>
+  
+
+  <script>
+    /***********************
+     * OFFLINE KAYIT MANTIĞI
+     * - Ders programı (sabit) = JS içinde
+     * - Ödev/Not/Sınav (değişken) = localStorage
+     ************************/
+
+    // 0=Pzt ... 6=Paz
+    const DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+
+    // Demo program (sonraki adımda senin gerçek tablo/verilerine göre dolduracağız)
+    const timetable = {
+      0: [
+        {no:1, time:"08:15-08:55", cls:"12/J", lesson:"KELAM"},
+        {no:2, time:"09:05-09:45", cls:"12/J", lesson:"KELAM"},
+        {no:3, time:"09:55-10:35", cls:"11/A", lesson:"MESLEKİ ARAPÇA"},
+        {no:4, time:"10:45-11:25", cls:"11/A", lesson:"MESLEKİ ARAPÇA"},
+        {no:5, time:"12:10-12:50", cls:"12/A", lesson:"KELAM"},
+        {no:6, time:"13:00-13:40", cls:"12/A", lesson:"KELAM"},
+        {no:7, time:"13:50-14:30", cls:"09/C", lesson:"KURAN-I KERİM"},
+        {no:8, time:"14:40-15:20", cls:"09/C", lesson:"KURAN-I KERİM"},
+      ],
+      1: [{no:1,time:"08:15-08:55",cls:"10/B",lesson:"FIKIH"}],
+      2: [{no:1,time:"08:15-08:55",cls:"12/J",lesson:"TEFSİR"}],
+      3: [{no:1,time:"08:15-08:55",cls:"11/A",lesson:"HADİS"}],
+      4: [{no:1,time:"08:15-08:55",cls:"09/C",lesson:"KURAN-I KERİM"}],
+      5: [{no:1,time:"08:15-08:55",cls:"12/A",lesson:"KELAM"}],
+      6: [{no:1,time:"08:15-08:55",cls:"10/B",lesson:"SİYER"}],
+    };
+
+    const STORE_KEY = "ders_takip_notes_v1";
+
+    function loadStore(){
+      try{
+        return JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+      }catch(e){
+        return {};
+      }
+    }
+    function saveStore(data){
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+    }
+
+    // Her satıra stabil bir id üretelim
+    function lessonId(dayIndex, row){
+      // Aynı gün içinde no+class+lesson benzersiz olsun
+      return [dayIndex, row.no, row.cls, row.lesson].join("|");
+    }
+
+    // Bugün hangi gün? (TR: Pazar=0 gelir, biz Pzt=0 istiyoruz)
+    function todayIndex(){
+      const d = new Date();
+      const js = d.getDay(); // 0 Pazar ... 6 Cumartesi
+      return (js + 6) % 7;   // 0 Pazartesi ... 6 Pazar
+    }
+
+    function ymd(dateObj){
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth()+1).padStart(2,"0");
+      const d = String(dateObj.getDate()).padStart(2,"0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function daysBetween(ymdA, ymdB){
+      // ymdA->ymdB (B-A) gün farkı
+      const a = new Date(ymdA + "T00:00:00");
+      const b = new Date(ymdB + "T00:00:00");
+      return Math.round((b - a) / (1000*60*60*24));
+    }
+
+    // Nokta kuralı:
+    // - Sadece bugünün sayfasında göster.
+    // - Kayıt varsa (ödev veya not dolu) => nokta ON
+    // - Sınav tarihi bugünden itibaren 0..2 gün içinde => nokta ON
+    function shouldShowDot(dayIndex, id, store){
+      // KURAL:
+      // - SADECE bugünün tarihinde olan derslerde göster
+      // - ÖDEV veya NOT varsa göster
+      // - Sınav tarihi varsa ve 0–2 gün kaldıysa göster
+      if(dayIndex !== todayIndex()) return false;
+
+      const item = store[id];
+      if(!item) return false;
+
+      const hasHomeworkOrNote =
+        (item.homework && item.homework.trim()) ||
+        (item.note && item.note.trim());
+
+      if(hasHomeworkOrNote) return true;
+
+      if(item.examDate){
+        const diff = daysBetween(ymd(new Date()), item.examDate);
+        if(diff >= 0 && diff <= 2) return true;
+      }
+      return false;
+    }
+
+    /***********************
+     * UI: Sayfaları oluştur
+     ************************/
+    const dayTrack = document.getElementById("dayTrack");
+
+    function buildDayPage(dayIndex){
+      const rows = timetable[dayIndex] || [];
+      const page = document.createElement("section");
+      page.className = "dayPage";
+
+      const card = document.createElement("div");
+      card.className = "tableCard";
+
+      const header = document.createElement("div");
+      header.className = "tableHeader";
+      header.innerHTML = `<div></div><div>#</div><div>ZAMAN</div><div>SINIF</div><div>DERS</div>`;
+      card.appendChild(header);
+
+      const store = loadStore();
+
+      rows.forEach(r=>{
+        const id = lessonId(dayIndex, r);
+
+        const row = document.createElement("div");
+        row.className = "row";
+        row.dataset.id = id;
+        row.dataset.day = String(dayIndex);
+
+        // Dot button
+        const dotBtn = document.createElement("div");
+        dotBtn.className = "dotBtn";
+        dotBtn.setAttribute("role","button");
+        dotBtn.setAttribute("aria-label","Bilgiler");
+
+        const dot = document.createElement("div");
+        dot.className = "dot" + (shouldShowDot(dayIndex, id, store) ? " on" : "");
+        dotBtn.appendChild(dot);
+
+        // Dot tıklanınca bilgi sayfası
+        dotBtn.addEventListener("click", (e)=>{
+          e.stopPropagation();
+          openView(id, dayIndex, r);
+        });
+
+        // Satır uzun bas: ilk giriş
+        attachLongPress(row, ()=> openEdit(id, dayIndex, r, true));
+
+        // Satıra normal tık: hiçbir şey (ana sayfa temiz)
+        row.addEventListener("click", ()=>{});
+
+        row.innerHTML = `
+          <div class="no">${r.no}</div>
+          <div class="time">${r.time}</div>
+          <div class="class">${r.cls}</div>
+          <div class="lesson" title="${escapeHtml(r.lesson)}">${escapeHtml(r.lesson)}</div>
+        `;
+
+        // row grid: dot + no + time + class + lesson şeklinde kurmak için
+        // row.innerHTML yukarıda dot yok; onu başa ekleyelim:
+        // (grid kolonlarına uyması için çocukları yeniden düzenleyelim)
+        const noEl = row.children[0];
+        const timeEl = row.children[1];
+        const clsEl = row.children[2];
+        const lesEl = row.children[3];
+
+        row.innerHTML = "";
+        row.appendChild(dotBtn);
+        row.appendChild(noEl);
+        row.appendChild(timeEl);
+        row.appendChild(clsEl);
+        row.appendChild(lesEl);
+
+        card.appendChild(row);
+      });
+
+      page.appendChild(card);
+      return page;
+    }
+
+    function renderAllPages(){
+      dayTrack.innerHTML = "";
+      for(let d=0; d<7; d++){
+        dayTrack.appendChild(buildDayPage(d));
+      }
+    }
+
+    function refreshDots(){
+      // aktif sayfadaki dotları güncelle (aslında hepsini)
+      const store = loadStore();
+      document.querySelectorAll(".row").forEach(row=>{
+        const id = row.dataset.id;
+        const day = Number(row.dataset.day);
+        const dot = row.querySelector(".dot");
+        if(!dot) return;
+        dot.classList.toggle("on", shouldShowDot(day, id, store));
+      });
+    }
+
+    /***********************
+     * NOTLAR (liste + filtre)
+     ************************/
+    const notesBtn = document.getElementById("notesBtn");
+    const notesDot = document.getElementById("notesDot");
+    const notesOverlay = document.getElementById("notesOverlay");
+    const notesList = document.getElementById("notesList");
+    const btnNotesClose = document.getElementById("btnNotesClose");
+    const filterBtns = [...document.querySelectorAll("#notesOverlay .filterBtn")];
+
+    let activeFilter = "all";
+
+    function hasAnyNotes(){
+      const store = loadStore();
+      return Object.values(store).some(item =>
+        (item.homework && item.homework.trim()) ||
+        (item.note && item.note.trim()) ||
+        (item.examDate && item.examDate.trim())
+      );
+    }
+
+    function refreshNotesDot(){
+      if(!notesDot) return;
+      notesDot.classList.toggle("on", hasAnyNotes());
+    }
+
+    function entryMatchesFilter(item, filter){
+      const hasHomework = item.homework && item.homework.trim();
+      const hasNote = item.note && item.note.trim();
+      const hasExam = item.examDate && item.examDate.trim();
+      if(filter === "homework") return !!hasHomework;
+      if(filter === "note") return !!hasNote;
+      if(filter === "exam") return !!hasExam;
+      return !!(hasHomework || hasNote || hasExam); // all
+    }
+
+    function setActiveFilter(filter){
+      activeFilter = filter;
+      filterBtns.forEach(b => b.classList.toggle("active", b.dataset.filter === filter));
+      renderNotesList();
+    }
+
+    function safeMeta(item){
+      const meta = item.meta || {};
+      return {
+        dayIndex: (typeof meta.dayIndex === "number") ? meta.dayIndex : null,
+        no: meta.no || "",
+        time: meta.time || "",
+        cls: meta.cls || "",
+        lesson: meta.lesson || ""
+      };
+    }
+
+    function renderNotesList(){
+      if(!notesList) return;
+      notesList.innerHTML = "";
+      const store = loadStore();
+
+      const entries = Object.entries(store)
+        .map(([id,item]) => ({id, item}))
+        .filter(({item}) => entryMatchesFilter(item, activeFilter))
+        .sort((a,b)=> (b.item.updatedAt||0) - (a.item.updatedAt||0));
+
+      if(entries.length === 0){
+        notesList.innerHTML = '<div class="muted">Bu filtrede kayıt yok.</div>';
+        return;
+      }
+
+      entries.forEach(({id,item})=>{
+        const meta = safeMeta(item);
+        const title = meta.lesson ? meta.lesson : (meta.cls ? meta.cls : "Kayıt");
+        const dayText = (meta.dayIndex !== null) ? DAYS[meta.dayIndex] : "—";
+        const line1 = `${dayText}${meta.time ? " • "+meta.time : ""}${meta.cls ? " • "+meta.cls : ""}${meta.no ? " • "+meta.no+". Ders" : ""}`;
+
+        const parts = [];
+        if(item.homework && item.homework.trim()) parts.push("Ödev");
+        if(item.note && item.note.trim()) parts.push("Not");
+        if(item.examDate && item.examDate.trim()) parts.push("Sınav: " + item.examDate);
+        const line2 = parts.join(" • ");
+
+        const div = document.createElement("div");
+        div.className = "noteCard";
+        div.style.cursor = "pointer";
+        div.innerHTML = `
+          <div class="notesItemTitle">${escapeHtml(title)}</div>
+          <div class="notesItemMeta">${escapeHtml(line1)}</div>
+          <div class="notesItemMeta">${escapeHtml(line2 || "—")}</div>
+        `;
+
+        div.addEventListener("click", ()=>{
+          // Notlar ekranından ilgili kaydı aç:
+          // meta varsa doğru satır başlığıyla açarız.
+          const r = { no: meta.no || "", time: meta.time || "", cls: meta.cls || "", lesson: meta.lesson || title };
+          const dIdx = (meta.dayIndex !== null) ? meta.dayIndex : todayIndex();
+          openEdit(id, dIdx, r, false);
+          closeNotes();
+        });
+
+        notesList.appendChild(div);
+      });
+    }
+
+    function openNotes(){
+      renderNotesList();
+      notesOverlay.classList.add("show");
+      notesOverlay.setAttribute("aria-hidden","false");
+    }
+    window.__openNotes = openNotes;
+
+    function closeNotes(){
+      notesOverlay.classList.remove("show");
+      notesOverlay.setAttribute("aria-hidden","true");
+    }
+
+    if(notesBtn){
+      notesBtn.addEventListener("click", openNotes);
+    }
+
+    // Android/WebView bazı durumlarda buton click'i yutabiliyor: garanti yakalama
+    document.addEventListener("click", (e)=>{
+      const t = e.target;
+      if(!t) return;
+      const btn = t.closest ? t.closest("#notesBtn, .notesEntry") : null;
+      if(btn){
+        // üstteki event'lerle çakışmasın
+        e.preventDefault();
+        openNotes();
+      }
+    }, true);
+
+    const notesEntryEl = document.querySelector(".notesEntry");
+    if(notesEntryEl){
+      notesEntryEl.addEventListener("click", openNotes);
+    }
+    if(btnNotesClose){
+      btnNotesClose.addEventListener("click", closeNotes);
+    }
+    if(notesOverlay){
+      notesOverlay.addEventListener("click", (e)=>{
+        if(e.target === notesOverlay) closeNotes();
+      });
+    }
+
+    // NOTLAR paneli: aşağı kaydırarak kapatma
+    let notesSwipeStartY = null;
+    let notesSwipeStartX = null;
+    let notesSwipeActive = false;
+
+    function notesTouchStart(ev){
+      const t = ev.touches[0];
+      notesSwipeStartY = t.clientY;
+      notesSwipeStartX = t.clientX;
+      notesSwipeActive = true;
+    }
+    function notesTouchMove(ev){
+      if(!notesSwipeActive) return;
+      const t = ev.touches[0];
+      const dy = t.clientY - notesSwipeStartY;
+      const dx = Math.abs(t.clientX - notesSwipeStartX);
+      // sadece dikey aşağı sürükleme
+      if(dy > 80 && dx < 40){
+        notesSwipeActive = false;
+        closeNotes();
+      }
+    }
+    function notesTouchEnd(){
+      notesSwipeActive = false;
+      notesSwipeStartY = null;
+      notesSwipeStartX = null;
+    }
+
+    if(notesOverlay){
+      const notesSheet = notesOverlay.querySelector(".sheet");
+      if(notesSheet){
+        notesSheet.addEventListener("touchstart", notesTouchStart, {passive:true});
+        notesSheet.addEventListener("touchmove", notesTouchMove, {passive:true});
+        notesSheet.addEventListener("touchend", notesTouchEnd, {passive:true});
+      }
+    }
+
+    filterBtns.forEach(b => b.addEventListener("click", ()=> setActiveFilter(b.dataset.filter)));
+
+
+    /***********************
+     * Gün sekmesi + swipe
+     ************************/
+    const dayTabs = [...document.querySelectorAll(".dayTab")];
+    const daySwipe = document.getElementById("daySwipe");
+    let activeDay = 0;
+
+    function setActiveDay(index){
+      activeDay = (index + 7) % 7;
+
+      dayTabs.forEach(b => b.classList.remove("active"));
+      const btn = dayTabs.find(b => Number(b.dataset.day) === activeDay);
+      if(btn){
+        btn.classList.add("active");
+        btn.scrollIntoView({behavior:"smooth", inline:"center", block:"nearest"});
+      }
+
+      dayTrack.style.transform = `translateX(-${activeDay * (100/7)}%)`;
+      // nokta kuralı bugüne bağlı olduğu için yenile
+      refreshDots();
+      refreshNotesDot();
+    refreshNotesDot();
+    }
+
+    dayTabs.forEach(btn=>{
+      btn.addEventListener("click", ()=> setActiveDay(Number(btn.dataset.day)));
+    });
+
+    // Swipe
+    let startX = 0, curX = 0, dragging = false;
+    daySwipe.addEventListener("touchstart", (e)=>{
+      dragging = true;
+      startX = e.touches[0].clientX;
+      curX = startX;
+    }, {passive:true});
+
+    daySwipe.addEventListener("touchmove", (e)=>{
+      if(!dragging) return;
+      curX = e.touches[0].clientX;
+    }, {passive:true});
+
+    daySwipe.addEventListener("touchend", ()=>{
+      if(!dragging) return;
+      dragging = false;
+      const dx = curX - startX;
+      if(dx < -40) setActiveDay(activeDay + 1);
+      else if(dx > 40) setActiveDay(activeDay - 1);
+    });
+
+    /***********************
+     * Mod toggle (haftalık sonra)
+     ************************/
+    const modeDaily = document.getElementById("modeDaily");
+    const modeWeekly = document.getElementById("modeWeekly");
+    const dailyWrap = document.getElementById("dailyWrap");
+    const weeklyWrap = document.getElementById("weeklyWrap");
+
+    function setMode(mode){
+      const dayTabsEl = document.getElementById("dayTabs");
+      const isDaily = (mode === "daily");
+      modeDaily.classList.toggle("active", isDaily);
+      modeWeekly.classList.toggle("active", !isDaily);
+      dailyWrap.style.display = isDaily ? "block" : "none";
+      if(dayTabsEl) dayTabsEl.style.display = isDaily ? "flex" : "none";
+      weeklyWrap.style.display = isDaily ? "none" : "block";
+      if(!isDaily && typeof window.renderWeeklyGrid === "function") window.renderWeeklyGrid();
+    }
+    modeDaily.addEventListener("click", ()=> setMode("daily"));
+    modeWeekly.addEventListener("click", ()=> setMode("weekly"));
+
+    /***********************
+     * Modal: görüntüleme / düzenleme
+     ************************/
+    const overlay = document.getElementById("overlay");
+    const sheetTitle = document.getElementById("sheetTitle");
+    const sheetSub = document.getElementById("sheetSub");
+    const sheetMode = document.getElementById("sheetMode");
+
+    const viewPanel = document.getElementById("viewPanel");
+    const editPanel = document.getElementById("editPanel");
+
+    const vHomework = document.getElementById("vHomework");
+    const vNote = document.getElementById("vNote");
+    const vExam = document.getElementById("vExam");
+
+    const iHomework = document.getElementById("iHomework");
+    const iNote = document.getElementById("iNote");
+    const iExamDate = document.getElementById("iExamDate");
+    const iExamNote = document.getElementById("iExamNote");
+
+    let currentId = null;
+    let currentMeta = null; // dayIndex,row
+
+    function openOverlay(){
+      overlay.classList.add("show");
+      overlay.setAttribute("aria-hidden","false");
+    }
+    function closeOverlay(){
+      overlay.classList.remove("show");
+      overlay.setAttribute("aria-hidden","true");
+      currentId = null;
+      currentMeta = null;
+    }
+    overlay.addEventListener("click", (e)=>{
+      if(e.target === overlay) closeOverlay();
+    });
+
+    document.getElementById("btnClose").addEventListener("click", closeOverlay);
+
+    document.getElementById("btnEdit").addEventListener("click", ()=>{
+      if(!currentId || !currentMeta) return;
+      openEdit(currentId, currentMeta.dayIndex, currentMeta.row, false);
+    });
+
+    document.getElementById("btnCancel").addEventListener("click", ()=>{
+      // görüntülemeye dön
+      if(!currentId || !currentMeta) return;
+      openView(currentId, currentMeta.dayIndex, currentMeta.row);
+    });
+
+    document.getElementById("btnSave").addEventListener("click", ()=>{
+      if(!currentId) return;
+      const store = loadStore();
+      store[currentId] = {
+        homework: iHomework.value || "",
+        note: iNote.value || "",
+        examDate: iExamDate.value || "",
+        examNote: iExamNote.value || "",
+        updatedAt: Date.now(),
+        meta: {
+          dayIndex: currentMeta ? currentMeta.dayIndex : null,
+          no: currentMeta ? currentMeta.row.no : null,
+          time: currentMeta ? currentMeta.row.time : "",
+          cls: currentMeta ? currentMeta.row.cls : "",
+          lesson: currentMeta ? currentMeta.row.lesson : ""
+        }
+      };
+      saveStore(store);
+      refreshDots();
+      refreshNotesDot();
+      // kaydettikten sonra görüntüleme
+      if(currentMeta) openView(currentId, currentMeta.dayIndex, currentMeta.row);
+    });
+
+    function setSheetHeader(dayIndex, row){
+      sheetTitle.textContent = row.lesson;
+      sheetSub.textContent = `${DAYS[dayIndex]} • ${row.time} • ${row.cls} • ${row.no}. Ders`;
+    }
+
+    function openView(id, dayIndex, row){
+      const store = loadStore();
+      const item = store[id] || null;
+
+      currentId = id;
+      currentMeta = {dayIndex, row};
+
+      setSheetHeader(dayIndex, row);
+      sheetMode.textContent = "BİLGİ";
+
+      viewPanel.style.display = "block";
+      editPanel.style.display = "none";
+
+      vHomework.textContent = (item && item.homework && item.homework.trim()) ? item.homework : "—";
+      vNote.textContent = (item && item.note && item.note.trim()) ? item.note : "—";
+
+      if(item && item.examDate){
+        const diff = daysBetween(ymd(new Date()), item.examDate);
+        const near = (diff >= 0 && diff <= 2) ? ` (⚠️ ${diff} gün kaldı)` : "";
+        const extra = (item.examNote && item.examNote.trim()) ? ` • ${item.examNote}` : "";
+        vExam.textContent = `${item.examDate}${near}${extra}`;
+      }else{
+        vExam.textContent = "—";
+      }
+
+      openOverlay();
+    }
+
+    function openEdit(id, dayIndex, row, isFirstFromLongPress){
+      const store = loadStore();
+      const item = store[id] || {homework:"", note:"", examDate:"", examNote:""};
+
+      currentId = id;
+      currentMeta = {dayIndex, row};
+
+      setSheetHeader(dayIndex, row);
+      sheetMode.textContent = ((item.homework && item.homework.trim()) || (item.note && item.note.trim()) || (item.examDate && item.examDate.trim()) || (item.examNote && item.examNote.trim())) ? "DÜZENLE" : "GİRİŞ";
+
+      viewPanel.style.display = "none";
+      editPanel.style.display = "block";
+
+      iHomework.value = item.homework || "";
+      iNote.value = item.note || "";
+      iExamDate.value = item.examDate || "";
+      iExamNote.value = item.examNote || "";
+
+      openOverlay();
+
+      if(isFirstFromLongPress){
+        // ilk girişte imleç ödev alanına gelsin
+        setTimeout(()=> iHomework.focus(), 50);
+      }
+    }
+
+    /***********************
+     * Uzun bas (550ms)
+     ************************/
+    function attachLongPress(el, onLongPress){
+      let timer = null;
+      let moved = false;
+
+      const start = (x,y)=>{
+        moved = false;
+        clearTimeout(timer);
+        timer = setTimeout(()=>{
+          timer = null;
+          if(!moved) onLongPress();
+        }, 550);
+      };
+
+      const cancel = ()=>{
+        clearTimeout(timer);
+        timer = null;
+      };
+
+      el.addEventListener("touchstart", (e)=>{
+        const t = e.touches[0];
+        start(t.clientX, t.clientY);
+      }, {passive:true});
+
+      el.addEventListener("touchmove", ()=>{
+        moved = true;
+        cancel();
+      }, {passive:true});
+
+      el.addEventListener("touchend", cancel, {passive:true});
+      el.addEventListener("touchcancel", cancel, {passive:true});
+
+      // Mouse (PC denemeleri için)
+      el.addEventListener("mousedown", ()=> start(0,0));
+      el.addEventListener("mouseup", cancel);
+      el.addEventListener("mouseleave", cancel);
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    /***********************
+     * Başlat
+     ************************/
+    renderAllPages();
+
+    // Varsayılan: bugünün günü açılsın (istersen 0 sabit de yaparız)
+    const tIdx = todayIndex();
+    setActiveDay(tIdx);
+
+    setMode("daily");
+    refreshDots();
+
+    /***********************
+     * İnternet yokken çalışma notu
+     * - Bu tek HTML dosyası localStorage ile offline çalışır.
+     * - İnternete yayınlamak istersen PWA/Service Worker ekleyebiliriz (sonraki adım).
+     ************************/
+  
+    /***********************
+     * HAFTALIK TABLO (bağımsız)
+     * - Günlükle ilişki yok
+     * - Notlarla ilişki yok
+     * - Tıklama yok (sadece görünüm)
+     ************************/
+    
+    function shortLessonName(name){
+      const s = String(name || "").trim();
+      if(!s) return "";
+      // İstersen burayı zamanla senin ders isimlerine göre genişletiriz:
+      const MAP = {
+        "KURAN-I KERİM":"KURAN",
+        "KURAN-I KERIM":"KURAN",
+        "MESLEKİ ARAPÇA":"MSARP",
+        "MESLEKI ARAPCA":"MSARP",
+        "İSLAM KÜLTÜR VE MEDENİYETİ":"İKVM",
+        "ISLAM KULTUR VE MEDENIYETI":"İKVM",
+        "TEMEL DİNİ BİLGİLER":"TDB",
+        "TEMEL DINI BILGILER":"TDB",
+        "AKAİD":"AKAİD",
+        "AKAID":"AKAİD",
+        "TEFSİR":"TEFSİR",
+        "TEFSIR":"TEFSİR",
+        "FIKIH":"FIKIH",
+        "FIKIH ":"FIKIH",
+        "KELAM":"KELAM",
+        "NÖBET":"NÖBET",
+        "NOBET":"NÖBET"
+      };
+      const up = s.toUpperCase().replace(/\s+/g," ").trim();
+      if(MAP[up]) return MAP[up];
+
+      // Otomatik kısaltma: 12 karakteri geçerse kısalt
+      const max = 12;
+      if(up.length <= max) return s;
+      return s.slice(0, max-1).trim() + "…";
+    }
+
+    window.renderWeeklyGrid = function(){
+      const wrap = document.getElementById("weeklyGridWrap");
+      if(!wrap) return;
+      wrap.innerHTML = "";
+
+      // en fazla kaç ders var?
+      let maxLessons = 0;
+      for(let d=0; d<7; d++){
+        const rows = timetable[d] || [];
+        if(rows.length > maxLessons) maxLessons = rows.length;
+      }
+      if(maxLessons === 0){
+        wrap.innerHTML = '<div class="noteCard" style="margin:12px"><b>Haftalık</b><div class="muted">Gösterilecek ders yok.</div></div>';
+        return;
+      }
+
+      const table = document.createElement("table");
+      table.className = "weekGrid";
+
+      const thead = document.createElement("thead");
+      const hr = document.createElement("tr");
+
+      const corner = document.createElement("th");
+      corner.className = "stickyTop stickyLeft corner";
+      corner.textContent = "Gün";
+      hr.appendChild(corner);
+
+      for(let i=0; i<maxLessons; i++){
+        // zamanı ilk bulunan günden al
+        let time = "";
+        for(let d=0; d<7; d++){
+          const r = (timetable[d]||[])[i];
+          if(r && r.time){ time = r.time; break; }
+        }
+        const th = document.createElement("th");
+        th.className = "stickyTop";
+        const t = (time || "").split("-");
+        th.innerHTML = `<div class="tNo">#${i+1}</div><div class="tTime">${escapeHtml(t[0]||"")}</div><div class="tTime">${escapeHtml(t[1]||"")}</div>`;
+        hr.appendChild(th);
+      }
+
+      thead.appendChild(hr);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      for(let d=0; d<7; d++){
+        const rows = timetable[d] || [];
+        if(rows.length === 0) continue;
+
+        const tr = document.createElement("tr");
+
+        const dayTh = document.createElement("th");
+        dayTh.className = "stickyLeft";
+        dayTh.textContent = DAYS[d] || ("Gün " + (d+1));
+        tr.appendChild(dayTh);
+
+        for(let i=0; i<maxLessons; i++){
+          const td = document.createElement("td");
+          td.className = "wCell";
+          const r = rows[i];
+
+          if(r){
+            const cls = r.cls || "";
+            const les = shortLessonName(r.lesson || "");
+            td.innerHTML = `<span class="wCls">${escapeHtml(cls)}</span><span class="wLes">${escapeHtml(les)}</span>`;
+          }else{
+            td.innerHTML = '<span style="opacity:.18;">-</span>';
+          }
+          tr.appendChild(td);
         }
 
-        function setPage(p) {
-            document.getElementById('pageHome').classList.toggle('hidden', p !== 'home');
-            document.getElementById('pageSettings').classList.toggle('hidden', p !== 'settings');
-            document.getElementById('btnHome').classList.toggle('active', p === 'home');
-            document.getElementById('btnSettings').classList.toggle('active', p === 'settings');
-            if(p === 'home') renderHome();
-            if(p === 'settings') renderBulkRows();
-            window.scrollTo(0,0);
-        }
+        tbody.appendChild(tr);
+      }
 
-        function handleLock() {
-            isEditingUnlocked = !isEditingUnlocked;
-            const lb = document.getElementById('lockBox');
-            lb.style.background = isEditingUnlocked ? "#f0fdf4" : "#fff5f5";
-            lb.style.borderColor = isEditingUnlocked ? "#bbf7d0" : "#fecaca";
-            document.getElementById('lockToggle').innerText = isEditingUnlocked ? "KİLİTLE" : "KİLİDİ AÇ";
-            document.getElementById('lockTxt').innerText = isEditingUnlocked ? "DÜZENLEME AKTİF" : "DÜZENLEME KİLİDİ";
-            document.getElementById('lockTxt').style.color = isEditingUnlocked ? "#166534" : "#991b1b";
-            document.querySelectorAll('#pageSettings input, #pageSettings select, #btnSave').forEach(el => el.disabled = !isEditingUnlocked);
-            renderBulkRows();
-        }
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+    };
 
-        function renderHome() {
-            const list = document.getElementById('scheduleList');
-            const dayData = db.schedule.filter(s => s.day === currentActiveDay).sort((a,b) => a.idx - b.idx);
-            const times = getTimes();
-            
-            // Üstteki butonları güncelle
-            document.querySelectorAll('.day-tab').forEach(t => {
-                t.classList.toggle('active', t.innerText === currentActiveDay);
-                if(t.innerText === currentActiveDay) t.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-            });
+</script>
+</div>
 
-            if(dayData.length === 0) {
-                list.innerHTML = `<div class="card" style="text-align:center; padding:20px; color:var(--text-sub); font-size:15px;">Ders girişi yapılmamış</div>`;
-                return;
-            }
-            let html = "";
-            dayData.forEach(s => {
-                const isEmpty = s.isEmpty === true;
-                let [h, m] = times[s.idx-1].split(':').map(Number);
-                let d = new Date(); d.setHours(h, m + parseInt(db.config.duration));
-                let endTime = String(d.getHours()).padStart(2, '0') + ":" + String(d.getMinutes()).padStart(2, '0');
-                html += `<div class="card" style="${isEmpty ? 'opacity:0.5; background:#f1f5f9;' : ''}">
-                    <div class="lesson-row">
-                        <div class="item-idx">${s.idx}</div>
-                        <div class="item-time">${times[s.idx-1]} - ${endTime}</div>
-                        <div class="${isEmpty ? 'item-class empty-val' : 'item-class'}">${isEmpty ? '' : s.class}</div>
-                        <div class="item-title">${isEmpty ? 'BOŞ DERS' : s.lesson}</div>
-                    </div>
-                </div>`;
-            });
-            list.innerHTML = html;
-        }
-
-        function renderBulkRows() {
-            const container = document.getElementById('bulkRows');
-            const day = document.getElementById('bulkDay').value;
-            let html = "";
-            for(let i=1; i<=8; i++) {
-                const s = db.schedule.find(x => x.day === day && x.idx === i) || {};
-                const lvl = s.class ? s.class.split('/')[0] : "";
-                const isEmpty = s.isEmpty === true;
-                html += `<div class="card settings-card">
-                    <div style="display:flex; align-items:center; background:#f1f5f9; padding:4px 8px; border-radius:8px; margin-bottom:4px;">
-                        <span class="row-num">${i}. DERS</span>
-                        <input type="checkbox" id="chk-${i}" ${isEmpty ? 'checked' : ''} onchange="toggleFormRow(${i})" ${!isEditingUnlocked ? 'disabled' : ''} style="width:16px; height:16px; margin:0 6px 0 0;">
-                        <label for="chk-${i}" style="margin:0; font-size:11px; color:var(--text-main); text-transform:none;">Bu saatte dersim yok</label>
-                    </div>
-                    <div id="row-ui-${i}" style="${isEmpty ? 'opacity:0.3; pointer-events:none;' : ''}">
-                        <div class="grid-2">
-                            <select id="lvl-${i}" onchange="updateFilters(${i})" ${!isEditingUnlocked ? 'disabled' : ''} style="height:34px; font-size:13px;">
-                                <option value="">Sınıf</option>
-                                <option value="09" ${lvl=='09'?'selected':''}>9</option>
-                                <option value="10" ${lvl=='10'?'selected':''}>10</option>
-                                <option value="11" ${lvl=='11'?'selected':''}>11</option>
-                                <option value="12" ${lvl=='12'?'selected':''}>12</option>
-                            </select>
-                            <select id="sub-${i}" ${!isEditingUnlocked ? 'disabled' : ''} style="height:34px; font-size:13px;"><option value="">Şube</option></select>
-                        </div>
-                        <select id="les-${i}" style="margin-top:4px; height:34px; font-size:13px;" ${!isEditingUnlocked ? 'disabled' : ''}><option value="">Ders Seçin</option></select>
-                    </div>
-                </div>`;
-            }
-            container.innerHTML = html;
-            for(let i=1; i<=8; i++) {
-                updateFilters(i);
-                const s = db.schedule.find(x => x.day === day && x.idx === i) || {};
-                if(s.class) {
-                    document.getElementById(`sub-${i}`).value = s.class.split('/')[1] || "";
-                    document.getElementById(`les-${i}`).value = s.lesson || "";
-                }
-            }
-        }
-
-        function toggleFormRow(i) {
-            const isChecked = document.getElementById(`chk-${i}`).checked;
-            document.getElementById(`row-ui-${i}`).style.opacity = isChecked ? "0.3" : "1";
-            document.getElementById(`row-ui-${i}`).style.pointerEvents = isChecked ? "none" : "auto";
-        }
-
-        function updateFilters(i) {
-            const lvl = document.getElementById(`lvl-${i}`).value;
-            const sub = document.getElementById(`sub-${i}`);
-            const les = document.getElementById(`les-${i}`);
-            const ps = sub.value, pl = les.value;
-            sub.innerHTML = '<option value="">Şube</option>';
-            if(lvl) classSubs[lvl].forEach(x => sub.innerHTML += `<option value="${x}">${x}</option>`);
-            sub.value = ps;
-            les.innerHTML = '<option value="">Ders Seçin</option>';
-            if(lvl) lessons[lvl].sort().forEach(x => les.innerHTML += `<option value="${x}">${x}</option>`);
-            les.value = pl;
-        }
-
-        function saveAll() {
-            db.config.start = document.getElementById('cfgStart').value;
-            db.config.duration = document.getElementById('cfgDur').value;
-            db.config.break = document.getElementById('cfgBreak').value;
-            db.config.lunch = document.getElementById('cfgLunch').value;
-            const day = document.getElementById('bulkDay').value;
-            let temp = db.schedule.filter(x => x.day !== day);
-            for(let i=1; i<=8; i++) {
-                const isEmpty = document.getElementById(`chk-${i}`).checked;
-                const lvl = document.getElementById(`lvl-${i}`).value;
-                const sub = document.getElementById(`sub-${i}`).value;
-                const les = document.getElementById(`les-${i}`).value;
-                if(isEmpty) { temp.push({ day, idx: i, lesson: "BOŞ DERS", class: "BOŞ", isEmpty: true }); }
-                else if(lvl && sub && les) { temp.push({ day, idx: i, lesson: les, class: `${lvl}/${sub}`, isEmpty: false }); }
-            }
-            db.schedule = temp;
-            localStorage.setItem('dersPlan_v1', JSON.stringify(db));
-            handleLock(); setPage('home');
-        }
-
-        // SWIPE (KAYDIRMA) ÖZELLİĞİ
-        let touchstartX = 0;
-        let touchendX = 0;
-
-        function handleGesture() {
-            if (touchendX < touchstartX - 70) { // Sola kaydırma -> Sonraki gün
-                let idx = gunList.indexOf(currentActiveDay);
-                if (idx < gunList.length - 1) {
-                    currentActiveDay = gunList[idx + 1];
-                    renderHome();
-                }
-            }
-            if (touchendX > touchstartX + 70) { // Sağa kaydırma -> Önceki gün
-                let idx = gunList.indexOf(currentActiveDay);
-                if (idx > 0) {
-                    currentActiveDay = gunList[idx - 1];
-                    renderHome();
-                }
-            }
-        }
-
-        window.onload = () => {
-            const bar = document.getElementById('dayBar');
-            gunList.forEach(d => {
-                const btn = document.createElement('div');
-                btn.className = `day-tab ${d === currentActiveDay ? 'active' : ''}`;
-                btn.innerText = d;
-                btn.onclick = (e) => {
-                    currentActiveDay = d;
-                    renderHome();
-                };
-                bar.appendChild(btn);
-            });
-
-            // Dokunmatik algılama
-            document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, false);
-            document.addEventListener('touchend', e => { 
-                touchendX = e.changedTouches[0].screenX; 
-                if(document.getElementById('pageHome').classList.contains('hidden')) return; // Sadece ana sayfada çalışsın
-                handleGesture(); 
-            }, false);
-
-            document.getElementById('cfgStart').value = db.config.start;
-            document.getElementById('cfgDur').value = db.config.duration;
-            document.getElementById('cfgBreak').value = db.config.break;
-            document.getElementById('cfgLunch').value = db.config.lunch;
-            renderHome();
-        };
-    </script>
 </body>
 </html>
-

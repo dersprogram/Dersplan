@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="tr">
 <head>
@@ -190,7 +189,7 @@ html, body{
     .tableHeader{
       /* başlık hizaları */
       display:grid;
-      grid-template-columns: 26px 42px 1fr 70px 1.4fr;
+      grid-template-columns: 20px 34px 1fr 70px 1.4fr;
       padding: 12px 12px 10px;
       color: var(--headerText);
       font-weight: 900;
@@ -211,7 +210,7 @@ html, body{
     .row{
       display:grid;
       grid-template-columns: 26px 42px 1fr 70px 1.4fr;
-      padding: 12px 12px;
+      padding: 12px 10px;
       align-items:center;
       border-bottom: 1px solid var(--line);
       position: relative;
@@ -222,16 +221,16 @@ html, body{
     .row:active{ background: rgba(255,255,255,0.04); }
 
     .dotBtn{
-      width: 18px;
-      height: 18px;
+      width: 14px;
+      height: 14px;
       display:flex;
       align-items:center;
       justify-content:center;
       cursor:pointer;
     }
     .dot{
-      width:10px;
-      height:10px;
+      width: 8px;
+      height: 8px;
       border-radius:999px;
       background: transparent;
       box-shadow: none;
@@ -469,7 +468,7 @@ html, body{
     }
 
   
-          .tableHeader > div:nth-child(5){ padding-left: 6px; }
+          .tableHeader > div:nth-child(5){ padding-left: 0px; }
     }
 
   
@@ -487,11 +486,11 @@ html, body{
       .tableHeader > div{ justify-self: stretch; }
       .tableHeader > div:nth-child(4){
         justify-self: center;
-        padding-left: 18px;
+        padding-left: 0px;
       }
       .tableHeader > div:nth-child(5){
         justify-self: start;
-        padding-left: 20px;
+        padding-left: 0px;
       }
     }
 
@@ -1574,41 +1573,56 @@ body.light-mode .weekly-table .cell .lesson {
       let store = {};
       try{ store = loadStore(); }catch(e){ store = {}; }
 
-      // 1) Herhangi bir günde kaydı olan dersler
+      // 1) Herhangi bir günde kaydı olan ders adları (ödev/not/sınav)
       const lessonsWithRecord = new Set();
       try{
         Object.keys(store||{}).forEach(id=>{
           const it = store[id];
           if(!it) return;
-          const hasText = (it.homework && String(it.homework).trim()) || (it.note && String(it.note).trim());
+          const hasText =
+            (it.homework && String(it.homework).trim()) ||
+            (it.note && String(it.note).trim());
           const hasExam = it.examDate && String(it.examDate).trim();
           const lesson = it.meta && it.meta.lesson ? String(it.meta.lesson).trim() : "";
           if(lesson && (hasText || hasExam)) lessonsWithRecord.add(lesson);
         });
       }catch(e){}
 
-      // 2) Bu sayfadaki her ders için "o günün ilk dersi" numarası
-      const firstNoByLesson = {};
+      // 2) HER GÜN için, ders adına göre "o günün ilk satır ders no"su
+      //    (Web'de tüm günler DOM'da aynı anda olduğu için gün bazında hesaplamak şart)
+      const firstNoByDayLesson = {};
       try{
         document.querySelectorAll(".row").forEach(row=>{
+          const dayStr = row.dataset ? row.dataset.day : null;
           const lessonEl = row.querySelector(".lesson");
           const noEl = row.querySelector(".no");
-          if(!lessonEl || !noEl) return;
+          if(dayStr == null || !lessonEl || !noEl) return;
+
+          const day = String(dayStr);
           const lesson = String(lessonEl.textContent||"").trim();
           const no = parseInt(String(noEl.textContent||"").trim(), 10);
+
           if(!lesson || !Number.isFinite(no)) return;
-          if(firstNoByLesson[lesson]==null || no < firstNoByLesson[lesson]) firstNoByLesson[lesson]=no;
+
+          const key = day + "|" + lesson;
+          if(firstNoByDayLesson[key] == null || no < firstNoByDayLesson[key]) firstNoByDayLesson[key] = no;
         });
       }catch(e){}
 
-      // 3) Noktaları yak
+      // 3) Noktaları yak:
+      //    - Kendi kaydı olan ders: her satırda dot ON (doğru davranış)
+      //    - Kendi kaydı yoksa ama aynı dersin herhangi bir gününde kayıt varsa:
+      //        sadece o günün ilk satırında dot ON
       try{
         document.querySelectorAll(".row").forEach(row=>{
           const id = row.dataset ? row.dataset.id : null;
-          const day = row.dataset ? Number(row.dataset.day) : NaN;
+          const dayStr = row.dataset ? row.dataset.day : null;
           const dot = row.querySelector(".dot");
-          if(!dot || !id) return;
+          if(!dot || !id || dayStr == null) return;
 
+          const day = Number(dayStr);
+
+          // kendi kaydı
           const own = shouldShowDot(day, id, store);
           if(own){
             dot.classList.add("on");
@@ -1620,13 +1634,18 @@ body.light-mode .weekly-table .cell .lesson {
           const lesson = lessonEl ? String(lessonEl.textContent||"").trim() : "";
           const no = noEl ? parseInt(String(noEl.textContent||"").trim(), 10) : NaN;
 
-          const cross = lesson && Number.isFinite(no) && firstNoByLesson[lesson] === no && lessonsWithRecord.has(lesson);
+          const key = String(dayStr) + "|" + lesson;
+          const cross = lesson && Number.isFinite(no) &&
+                        firstNoByDayLesson[key] === no &&
+                        lessonsWithRecord.has(lesson);
+
           dot.classList.toggle("on", !!cross);
         });
       }catch(e){}
     }
 
-    /***********************
+    /***
+********************
      * NOTLAR (liste + filtre)
      ************************/
     const notesBtn = document.getElementById("notesBtn");
